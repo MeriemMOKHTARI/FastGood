@@ -5,6 +5,8 @@ import 'package:geolocator/geolocator.dart';
 import 'package:geocoding/geocoding.dart';
 import 'SaveAddressScreen.dart';
 
+
+//khsni nzid authorisation + oran initial
 class MapScreen extends StatefulWidget {
   final LatLng initialLocation;
 
