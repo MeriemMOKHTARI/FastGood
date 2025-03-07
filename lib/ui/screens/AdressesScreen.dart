@@ -1,9 +1,12 @@
+import 'package:datalock/config/config.dart';
 import 'package:datalock/services/map_service.dart';
 import 'package:flutter/material.dart';
 import '../../data/models/addresses_model.dart';
 import 'MapScreen.dart';
 import 'SaveAddressScreen.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:appwrite/appwrite.dart';
 
 class AddressesScreen extends StatefulWidget {
   const AddressesScreen({Key? key}) : super(key: key);
@@ -13,142 +16,360 @@ class AddressesScreen extends StatefulWidget {
 }
 
 class _AddressesScreenState extends State<AddressesScreen> {
+  bool _isLoading = true;
+  final MapService _mapService = MapService();
+  String? cachedUserId;
+  final account = Config.getAccount();
+  final databases = Config.getDatabases();
   List<Address> addresses = [];
-bool _isLoading = true; // Added this variable
-  final MapService _mapService = MapService(); 
-  IconData _getIconData(String icon) {
-    switch (icon) {
-      case 'home':
-        return Icons.home_outlined;
-      case 'work':
-        return Icons.work_outline;
-      case 'school':
-        return Icons.school_outlined;
-      case 'star':
-        return Icons.star_outline;
-      case 'favorite':
-        return Icons.favorite_outline;
-      case 'location':
-        return Icons.location_on_outlined;
-      default:
-        return Icons.location_on_outlined;
-    }
-  }
-
-  Color _getColor(String colorString) {
-    switch (colorString) {
-      case 'Colors.green':
-        return Colors.green;
-      case 'Colors.orange':
-        return Colors.orange;
-      case 'Colors.red':
-        return Colors.red;
-      case 'Colors.purple':
-        return Colors.purple;
-      case 'Colors.blue':
-        return Colors.blue;
-      case 'Colors.lightBlue':
-        return Colors.lightBlue;
-      default:
-        return Colors.green;
-    }
-  }
 
   @override
   void initState() {
     super.initState();
-    _loadAddresses();
+    _loadCachedUserId();
   }
 
-  Future<void> _loadAddresses() async {
+  Future<void> _loadCachedUserId() async {
+    final prefs = await SharedPreferences.getInstance();
+    setState(() {
+      cachedUserId = prefs.getString('cached_user_id');
+    });
+    if (cachedUserId == null) {
+      print("Attention : L'ID utilisateur mis en cache est null");
+    } else {
+      _loadAddresses();
+    }
+  }
+
+Future<void> _loadAddresses() async {
+  print('Starting to load addresses...');
   setState(() {
     _isLoading = true;
   });
 
-  final mapService = MapService();
-  final result = await mapService.getFavoriteAddresses();
-  
-  if (result['status'] == '200') {
+  try {
+    if (cachedUserId == null) {
+      print("Error: No cached user ID found");
+      return;
+    }
+
+    final result = await _mapService.getFavoriteAddresses(
+      cachedUserId!,
+      account,
+      databases
+    );
+    print('Got addresses result: $result');
+
+    if (result['status'] == '200' && result['data'] != null) {
+      final List<dynamic> addressesData = result['data'] as List<dynamic>;
+      print('Processing addresses data: $addressesData');
+
+      final List<Address> loadedAddresses = addressesData.map((addr) {
+        String name;
+        String icon;
+        
+        switch (addr['label']) {
+          case 'H':
+            name = 'Domicile';
+            icon = 'home';
+            break;
+          case 'W':
+            name = 'Bureau';
+            icon = 'work';
+            break;
+          case 'C':
+            // Pour les adresses personnalisées, nous utiliserons le champ 'address' comme nom
+            // car il contient le texte entré par l'utilisateur
+            name = addr['address'];
+            icon = 'location';
+            break;
+          default:
+            name = addr['address'];
+            icon = 'location';
+        }
+
+        return Address(
+          id: addr['\$id'] ?? '',
+          name: name,
+          latitude: double.parse(addr['latitude'].toString()),
+          longitude: double.parse(addr['longitude'].toString()),
+          icon: icon,
+          color: Color(0xFFFF7F50),
+        );
+      }).toList();
+
+      print('Created Address objects: $loadedAddresses');
+
+      setState(() {
+        addresses = loadedAddresses;
+      });
+    } else {
+      print('Error loading addresses: ${result['message']}');
+    }
+  } catch (e) {
+    print('Error loading addresses: $e');
+  } finally {
     setState(() {
-      addresses = (result['data'] as List)
-          .map((addr) => Address.fromMap(addr))
-          .toList();
+      _isLoading = false;
     });
   }
-  
-  setState(() {
-    _isLoading = false;
-  });
 }
+
+
+ Widget _buildAddressItem({
+  required String title,
+  required String coordinates,
+  required IconData icon,
+  required String documentId,
+  bool isCurrentLocation = false,
+  VoidCallback? onTap,
+}) {
+  return Container(
+    margin: const EdgeInsets.only(bottom: 16),
+    child: Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: onTap,
+        child: Row(
+          children: [
+            Container(
+              width: 40,
+              height: 40,
+              decoration: BoxDecoration(
+                color: Color(0xFFFF7F50).withOpacity(0.1),
+                shape: BoxShape.circle,
+              ),
+              child: Icon(
+                icon,
+                color: Color(0xFFFF7F50),
+                size: 20,
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    title,
+                    style: const TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w500,
+                      color: Colors.black,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    coordinates,
+                    style: TextStyle(
+                      fontSize: 14,
+                      color: Colors.grey[600],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            IconButton(
+              icon: Icon(
+                Icons.edit,
+                color: Colors.grey[600],
+                size: 24,
+              ),
+              onPressed: onTap,
+            ),
+            IconButton(
+              icon: const Icon(
+                Icons.delete_outline,
+                color: Colors.red,
+                size: 24,
+              ),
+              onPressed: () => _showDeleteConfirmation(context, documentId),
+            ),
+          ],
+        ),
+      ),
+    ),
+  );
+}
+Future<void> _showDeleteConfirmation(BuildContext context, String documentId) async {
+  return showModalBottomSheet(
+    context: context,
+    backgroundColor: Colors.transparent,
+    builder: (BuildContext context) {
+      return Container(
+        decoration: const BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.only(
+            topLeft: Radius.circular(20),
+            topRight: Radius.circular(20),
+          ),
+        ),
+        child: Padding(
+          padding: const EdgeInsets.all(20),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Text(
+                'Remove Adresse',
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.w500,
+                  color: Colors.red,
+                ),
+              ),
+              const SizedBox(height: 16),
+              const Text(
+                'Are you sure you want to delete this adresse?',
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  fontSize: 16,
+                  color: Colors.black87,
+                ),
+              ),
+              const SizedBox(height: 24),
+              Row(
+                children: [
+                  Expanded(
+                    child: TextButton(
+                      onPressed: () => Navigator.of(context).pop(),
+                      style: TextButton.styleFrom(
+                        backgroundColor: Color.fromARGB(255, 255, 235, 228),
+                        foregroundColor: Colors.black87,
+                        padding: const EdgeInsets.symmetric(vertical: 12),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                      ),
+                      child: const Text(
+                        'Cancel',
+                        style: TextStyle(fontSize: 16),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: TextButton(
+                      onPressed: () async {
+                        Navigator.of(context).pop();
+                        final mapService = MapService();
+                        final result = await mapService.deleteFavoriteAddress(documentId);
+                        
+                        if (result['status'] == '200') {
+                          if (context.mounted) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(content: Text('Address deleted successfully')),
+                            );
+                          }
+                          _loadAddresses(); // Refresh the list
+                        } else {
+                          if (context.mounted) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(content: Text(result['message'] ?? 'Failed to delete address')),
+                            );
+                          }
+                        }
+                      },
+                      style: TextButton.styleFrom(
+                        backgroundColor: const Color(0xFFFF7F50),
+                        foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(vertical: 12),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                      ),
+                      child: const Text(
+                        'Yes, remove',
+                        style: TextStyle(fontSize: 16),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+      );
+    },
+  );
+}
+
+  IconData _getIconForType(String type) {
+    switch (type.toLowerCase()) {
+      case 'home':
+        return Icons.home_outlined;
+      case 'office':
+      case 'work':
+        return Icons.work_outline;
+      case 'navigation':
+        return Icons.navigation_outlined;
+      default:
+        return Icons.location_on_outlined;
+    }
+  }
+
+  String _formatCoordinates(double lat, double lng) {
+    return '${lat.toStringAsFixed(3)}°, ${lng.toStringAsFixed(3)}°';
+  }
 
   @override
   Widget build(BuildContext context) {
+    print('Building AddressesScreen with ${addresses.length} addresses');
     return Scaffold(
-      backgroundColor: Colors.grey[50],
+      backgroundColor: Colors.white,
       appBar: AppBar(
-        title: const Text(
-          'Mes adresses',
-          style: TextStyle(color: Colors.black),
-        ),
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Color(0xFF70B9BE)),
-          onPressed: () => Navigator.pop(context),
-        ),
         backgroundColor: Colors.white,
         elevation: 0,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back, color: Color(0xFFFF7F50)),
+          onPressed: () => Navigator.pop(context),
+        ),
+        title: const Text(
+          'Mes adresses',
+          style: TextStyle(
+            color: Colors.black,
+            fontSize: 20,
+            fontWeight: FontWeight.w500,
+          ),
+        ),
       ),
       body: _isLoading
-          ? const Center(child: CircularProgressIndicator())
+          ? const Center(child: CircularProgressIndicator(color: Colors.green))
           : Column(
               children: [
                 Expanded(
                   child: ListView(
                     padding: const EdgeInsets.all(16),
                     children: [
-                      _buildAddressItem(
-                        icon: Icons.navigation_outlined,
-                        title: 'Position actuelle',
-                        subtitle: 'Veuillez activer votre localisation',
-                        showArrow: true,
-                        onTap: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                                builder: (context) => const MapScreen()),
-                          );
-                        },
-                      ),
-                      const SizedBox(height: 16),
-                      ...addresses.map((address) => Column(
-                            children: [
-                              _buildAddressItem(
-                                icon: _getIconData(address.icon),
-                                title: address.name,
-                                subtitle:
-                                    '${address.latitude.toStringAsFixed(6)}, ${address.longitude.toStringAsFixed(6)}',
-                                showEdit: true,
-                                onTap: () async {
-                                  final result = await Navigator.push(
-                                    context,
-                                    MaterialPageRoute(
-                                      builder: (context) => SaveAddressScreen(
-                                        location: LatLng(
-                                          address.latitude,
-                                          address.longitude,
-                                        ),
-                                        addressToEdit: address,
-                                      ),
-                                    ),
-                                  );
-
-                                  if (result == true) {
-                                    _loadAddresses(); // Reload addresses after edit
-                                  }
-                                },
+                      ...addresses.map((address) {
+                        print('Rendering address: ${address.name}');
+                        return _buildAddressItem(
+                          title: address.name,
+                          coordinates: _formatCoordinates(
+                            address.latitude,
+                            address.longitude,
+                          ),
+                          icon: _getIconForType(address.icon),
+                          documentId: address.id,  // Add this line
+                          onTap: () async {
+                            final result = await Navigator.push<bool>(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => SaveAddressScreen(
+                                  location: LatLng(
+                                    address.latitude,
+                                    address.longitude,
+                                  ),
+                                  addressToEdit: address,
+                                ),
                               ),
-                              const SizedBox(height: 16),
-                            ],
-                          )),
+                            );
+
+                            if (result == true) {
+                              await _loadAddresses();
+                            }
+                          },
+                        );
+                      }).toList(),
                     ],
                   ),
                 ),
@@ -156,24 +377,37 @@ bool _isLoading = true; // Added this variable
                   padding: const EdgeInsets.all(16),
                   child: ElevatedButton(
                     onPressed: () async {
-                      final result = await Navigator.push(
+                      final LatLng? result = await Navigator.push(
                         context,
                         MaterialPageRoute(
-                            builder: (context) => const MapScreen()),
+                          builder: (context) => MapScreen(
+                            initialLocation: const LatLng(0, 0), // Provide a default location
+                          ),
+                        ),
                       );
-                      if (result == true) {
-                        _loadAddresses(); // Reload addresses after adding new one
+                      if (result != null) {
+                        final bool? saveResult = await Navigator.push<bool>(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => SaveAddressScreen(
+                              location: result,
+                            ),
+                          ),
+                        );
+                        if (saveResult == true) {
+                          await _loadAddresses();
+                        }
                       }
                     },
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFF88C3C6),
+                      backgroundColor: Color(0xFFFF7F50),
                       minimumSize: const Size(double.infinity, 56),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(12),
                       ),
                     ),
                     child: const Text(
-                      'Ajoutez une adresse',
+                      'Ajouter une adresse',
                       style: TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.w500,
@@ -186,65 +420,5 @@ bool _isLoading = true; // Added this variable
             ),
     );
   }
-    
-
-  Widget _buildAddressItem({
-    required IconData icon,
-    required String title,
-    required String subtitle,
-    bool showArrow = false,
-    bool showEdit = false,
-    Color color = Colors.green,
-    VoidCallback? onTap,
-  }) {
-    return InkWell(
-      onTap: onTap,
-      child: Container(
-        padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: Colors.grey[200]!),
-        ),
-        child: Row(
-          children: [
-            Container(
-              padding: const EdgeInsets.all(8),
-              decoration: BoxDecoration(
-                color: color,
-                shape: BoxShape.circle,
-              ),
-              child: Icon(icon, color: Colors.white),
-            ),
-            const SizedBox(width: 16),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    title,
-                    style: const TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
-                  Text(
-                    subtitle,
-                    style: TextStyle(
-                      color: Colors.grey[600],
-                      fontSize: 14,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            if (showArrow)
-              const Icon(Icons.arrow_forward_ios, size: 16)
-            else if (showEdit)
-              Icon(Icons.edit, color: color),
-          ],
-        ),
-      ),
-    );
-  }
 }
+

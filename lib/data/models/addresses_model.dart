@@ -1,10 +1,12 @@
+import 'package:flutter/material.dart';
+
 class Address {
   final String id;
   final String name;
   final double latitude;
   final double longitude;
   final String icon;
-  final String color;
+  final Color color;
   
   Address({
     required this.id,

@@ -8,6 +8,7 @@ import 'package:appwrite/models.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import '../config/config.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class AuthService {
   String? ipAddress;
@@ -18,7 +19,6 @@ class AuthService {
       await storage.write(key: 'phone_number', value: phoneNumber);
       await storage.write(key: 'user_id', value: userId);
       await storage.write(key: 'session_id', value: sessionId);
-// comment added
     } catch (e) {
       print('Error saving user session: $e');
     }
@@ -27,7 +27,7 @@ class AuthService {
       String phoneNumber,
       String platform,
       String ipAdresseUser,
-      String entry_id,
+      String id,
       Account account,
       Databases databases) async {
     Client client = Client()
@@ -36,7 +36,7 @@ class AuthService {
         .setSelfSigned(status: true);
     Functions functions = Functions(client);
     final storage = FlutterSecureStorage();
-    final id = await storage.read(key: 'user_id');
+    // final id = await storage.read(key: 'user_id');
     await storage.write(key: 'phoneNumber' , value: phoneNumber);
     try {
       Execution result = await functions.createExecution(
@@ -50,7 +50,8 @@ class AuthService {
       );
       if (result.status == 'completed') {
         final responseBody = json.decode(result.responseBody);
-        print(responseBody);
+        print("ccc,$responseBody");
+        // print("entryyy,$id");
         if (responseBody['status'] == 200) {
           print('SMS sent successfully');
           return '200';
@@ -65,26 +66,24 @@ class AuthService {
         return '401';
       }
     } catch (e) {
-      // Handle error
       print('Error sending SMS: $e');
       return 'Error sending SMS: $e';
     }
   }
 
-  // ignore: non_constant_identifier_names
- Future<String> VerifyOTP(String phoneNumber, String otp, String entry_id, Account account, Databases databases) async {
+ Future<String> VerifyOTP(String phoneNumber, String otp,String id,  Account account, Databases databases) async {
     Client client = Client()
         .setEndpoint(Config.appwriteEndpoint)
         .setProject(Config.appwriteProjectId)
         .setSelfSigned(status: true);
     Functions functions = Functions(client);
-    final storage = FlutterSecureStorage();
-    final id = await storage.read(key: 'new_user_id');
-    if (id == null) {
-      print('Error: new_user_id is null');
-      return 'ERR_NULL_ID';
-    }
-    print('new id : ' + id);
+    // final storage = FlutterSecureStorage();
+    // final id = await storage.read(key: 'new_user_id');
+    // if (id == null) {
+    //   print('Error: new_user_id is null');
+    //   return 'ERR_NULL_ID';
+    // }
+    // print('new id : ' + id);
     try {
       Execution result = await functions.createExecution(
         functionId: "6744a9f8001f83732f40",
@@ -95,7 +94,7 @@ class AuthService {
         }),
       );
       print('Function execution status: ${result.status}');
-      print('Function response body: ${result.responseBody}');
+      print('CCCCCCCCCC ${result.responseBody}');
       if (result.status == 'completed') {
         final responseBody = json.decode(result.responseBody);
         print('Decoded response body: $responseBody');
@@ -117,7 +116,6 @@ class AuthService {
       return 'ERR';
     }
   }
-
 
 
   void startCountdown(int seconds, Function(String) updateTime) {
@@ -328,14 +326,15 @@ Future<Map<String, String>> logoutUser(String sessionsID,
     }
   }
 
-  Future<Map<String, String>> verifyUserExistence(String phoneNumber) async {
+// Update the verifyUserExistence method to ensure consistent caching
+Future<Map<String, String>> verifyUserExistence(String phoneNumber) async {
   Client client = Client()
       .setEndpoint(Config.appwriteEndpoint)
       .setProject(Config.appwriteProjectId)
       .setSelfSigned(status: true);
   Functions functions = Functions(client);
-  
   final storage = FlutterSecureStorage();
+  final prefs = await SharedPreferences.getInstance(); // Add this line
 
   try {
     Execution result = await functions.createExecution(
@@ -354,6 +353,7 @@ Future<Map<String, String>> logoutUser(String sessionsID,
         print('User exists');
         String existingUserID = responseBody['userID'] ?? '';
         await storage.write(key: 'user_id', value: existingUserID);
+        await prefs.setString('cached_user_id', existingUserID); // Add this line
         return {
           'status': '200',
           'userID': existingUserID,
@@ -362,6 +362,7 @@ Future<Map<String, String>> logoutUser(String sessionsID,
         print('User does not exist');
         String newUserID = ID.unique();
         await storage.write(key: 'user_id', value: newUserID);
+        await prefs.setString('cached_user_id', newUserID); // Add this line
         return {
           'status': '333',
           'userID': newUserID,
@@ -382,4 +383,17 @@ Future<Map<String, String>> logoutUser(String sessionsID,
     return {'status': 'ERR', 'message': e.toString()};
   }
 }
+
+// Add a utility method to help with caching user IDs
+Future<void> cacheUserId(String userId) async {
+  final storage = FlutterSecureStorage();
+  final prefs = await SharedPreferences.getInstance();
+  
+  // Store in both secure storage and SharedPreferences for redundancy
+  await storage.write(key: 'user_id', value: userId);
+  await prefs.setString('cached_user_id', userId);
+  
+  print("User ID cached in multiple locations: $userId");
 }
+}
+

@@ -1,14 +1,17 @@
+import 'package:datalock/data/provider/user_provider.dart';
 import 'package:datalock/ui/screens/HomeContent.dart';
 import 'package:datalock/ui/screens/HomePage.dart';
 import 'package:datalock/ui/screens/MapScreen.dart';
+import 'package:datalock/ui/screens/permissions_screen.dart';
+import 'package:datalock/ui/screens/splash_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:appwrite/appwrite.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:provider/provider.dart';
 import 'ui/screens/authentication_screen.dart';
 import 'ui/screens/onboarding_screen.dart';
 import 'ui/screens/HomePage.dart';
-
 import 'config/config.dart';
 import 'package:flutter/material.dart' as flutter;
 
@@ -22,11 +25,16 @@ void main() async {
   final functions = Config.getFunctions();
 
   runApp(
-    EasyLocalization(
-      supportedLocales: [flutter.Locale('en'), flutter.Locale('fr'), flutter.Locale('ar'), flutter.Locale('es')],
-      path: 'assets/translations',
-      fallbackLocale: flutter.Locale('en'),
-      child: MyApp(account: account, databases: databases, functions: functions),
+    MultiProvider(
+      providers: [
+        ChangeNotifierProvider(create: (_) => UserProvider()),
+      ],
+      child: EasyLocalization(
+        supportedLocales: [flutter.Locale('en'), flutter.Locale('fr'), flutter.Locale('ar'), flutter.Locale('es')],
+        path: 'assets/translations',
+        fallbackLocale: flutter.Locale('en'),
+        child: MyApp(account: account, databases: databases, functions: functions),
+      ),
     ),
   );
 }
@@ -52,13 +60,11 @@ class MyApp extends flutter.StatelessWidget {
       locale: context.locale,
       title: 'app_name'.tr(),
       theme: Config.themeData,
-      home: AuthenticationScreen(account: account, databases: databases, functions: functions),
-      // HomePage(),
-      //  SplashScreen(
-      //   account: account,
-      //   databases: databases,
-      //   functions: functions,
-      // ),
+      home: SplashScreen(
+        account: account,
+        databases: databases,
+        functions: functions,
+      ),
     );
   }
 }

@@ -9,7 +9,6 @@ import './intro_page_3.dart';
 import './authentication_screen.dart';
 import 'package:appwrite/appwrite.dart';
 import '../widgets/custom_button.dart';
-
 class OnboardingScreen extends StatefulWidget {
   const OnboardingScreen({super.key});
   
@@ -20,6 +19,7 @@ class OnboardingScreen extends StatefulWidget {
 class _OnBoardingScreenState extends State<OnboardingScreen> {
   final PageController _controller = PageController();
   bool onLastPage = false;
+  int currentPage = 0;
 
   @override
   void initState() {
@@ -32,7 +32,6 @@ class _OnBoardingScreenState extends State<OnboardingScreen> {
     bool seen = (prefs.getBool('seen') ?? false);
 
     if (seen) {
-      // Si déjà vu, aller directement à AuthenticationScreen
       Navigator.of(context).pushReplacement(
         MaterialPageRoute(
           builder: (context) => AuthenticationScreen(
@@ -55,12 +54,12 @@ class _OnBoardingScreenState extends State<OnboardingScreen> {
     return Scaffold(
       body: Stack(
         children: [
-          // Pages de l'onboarding
           PageView(
             controller: _controller,
             onPageChanged: (index) {
               setState(() {
                 onLastPage = (index == 2);
+                currentPage = index;
               });
             },
             children: const [
@@ -69,18 +68,23 @@ class _OnBoardingScreenState extends State<OnboardingScreen> {
               IntroPage3(),
             ],
           ),
-
-          // Bouton Skip en haut à droite
           if (!onLastPage)
             Positioned(
               top: 50,
               right: 20,
               child: TextButton(
                 onPressed: () {
-                  _controller.jumpToPage(2);
+                  if (currentPage == 0) {
+                    _controller.jumpToPage(2);
+                  } else {
+                    _controller.nextPage(
+                      duration: const Duration(milliseconds: 800),
+                      curve: Curves.easeIn,
+                    );
+                  }
                 },
                 child: Text(
-                  'Skip'.tr(),
+                  currentPage == 0 ? 'Skip'.tr() : 'Next'.tr(),
                   style: TextStyle(
                     color: Colors.black54,
                     fontSize: 16,
@@ -88,30 +92,26 @@ class _OnBoardingScreenState extends State<OnboardingScreen> {
                 ),
               ),
             ),
-
-          // Indicateur de page et bouton Next/Done au centre en bas
           Positioned(
             bottom: 50,
             left: 0,
             right: 0,
             child: Column(
               children: [
-                // Page indicator
                 SmoothPageIndicator(
                   controller: _controller,
                   count: 3,
-                  effect: WormEffect(
-                    activeDotColor: const Color.fromARGB(255, 2, 33, 46),
+                  effect: ExpandingDotsEffect(
+                    activeDotColor: const Color(0xFFFF7F50),
                     dotColor: Colors.grey.shade300,
                     dotHeight: 10,
                     dotWidth: 10,
                   ),
                 ),
                 const SizedBox(height: 20),
-                // Bouton Next/Done
-                CustomButton(
-                  onPressed: () {
-                    if (onLastPage) {
+                if (onLastPage)
+                  CustomButton(
+                    onPressed: () {
                       _markAsSeen();
                       Navigator.pushReplacement(
                         context,
@@ -123,15 +123,9 @@ class _OnBoardingScreenState extends State<OnboardingScreen> {
                           ),
                         ),
                       );
-                    } else {
-                      _controller.nextPage(
-                        duration: const Duration(milliseconds: 800),
-                        curve: Curves.easeIn,
-                      );
-                    }
-                  },
-                  text: onLastPage ? 'Done'.tr() : 'Next'.tr(),
-                ),
+                    },
+                    text: 'Done'.tr(),
+                  ),
               ],
             ),
           ),
@@ -140,4 +134,3 @@ class _OnBoardingScreenState extends State<OnboardingScreen> {
     );
   }
 }
-

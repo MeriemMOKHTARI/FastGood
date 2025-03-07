@@ -24,33 +24,10 @@ class _PermissionsScreenState extends State<PermissionsScreen> {
       backgroundColor: Colors.white,
       body: SafeArea(
         child: Padding(
-          padding: const EdgeInsets.all(24.0),
+          padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 16.0),
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Text(
-                'Bienvenue!'.tr(),
-                style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                  color: Config.themeData.primaryColor,
-                  fontWeight: FontWeight.bold,
-                  shadows: [
-      Shadow(
-        color: Colors.black26,
-        offset: Offset(2, 2),
-        blurRadius: 3,
-      ),
-    ],
-                ),
-              ),
-              const SizedBox(height: 16),
-              Text(
-                'Pour_une_meilleure_experience,_nous_avons_besoin_de_votre_autorisation.'.tr(),
-                style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                  color: Config.themeData.scaffoldBackgroundColor,
-                ),
-                textAlign: TextAlign.center,
-              ),
-              const SizedBox(height: 32),
               _buildLocationPermission(),
             ],
           ),
@@ -60,16 +37,84 @@ class _PermissionsScreenState extends State<PermissionsScreen> {
   }
 
   Widget _buildLocationPermission() {
-    return PermissionCard(
-      title: 'Partager_votre_localisation'.tr(),
-      description:
+    return Column(
+      children: [
+        Container(
+          width: 120,
+          height: 120,
+          decoration: BoxDecoration(
+            color: Config.themeData.primaryColor,
+            shape: BoxShape.circle,
+          ),
+          child: Stack(
+            alignment: Alignment.center,
+            children: [
+              Icon(
+                Icons.location_on,
+                 color: Color.fromARGB(255, 255, 174, 123),
+                size: 80,
+              ),
+              Icon(
+                Icons.location_on,
+                color: Config.themeData.scaffoldBackgroundColor,
+                size: 48,
+              ),
+            ],
+          ),
+        ),
+        SizedBox(height: 32),
+        Text(
+          'Bienvenue!'.tr(),
+          style: TextStyle(
+            fontSize: 24,
+            fontWeight: FontWeight.w600,
+            color: Colors.grey.shade800,
+          ),
+        ),
+        SizedBox(height: 16),
+        Text(
           'L_application_utilisera_votre_localisation_pour_trouver_des_établissements_près_de_vous,_et_vous_livrer_avec_prévision_à_votre_adresse.'.tr(),
-      icon: Icons.location_on,
-      onAccept: _handleLocationPermission,
-      onDeny: _handleLocationDenied,
+          style: TextStyle(
+            fontSize: 14,
+            color: Colors.grey.shade600,
+          ),
+          textAlign: TextAlign.center,
+        ),
+        SizedBox(height: 40),
+        ElevatedButton(
+          onPressed: _handleLocationPermission,
+          style: ElevatedButton.styleFrom(
+            backgroundColor: Config.themeData.scaffoldBackgroundColor,
+            foregroundColor: Colors.black,
+            minimumSize: Size(double.infinity, 56),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(28),
+            ),
+            elevation: 0,
+          ),
+          child: Text(
+            'Partager_votre_localisation'.tr(),
+            style: TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+        ),
+        SizedBox(height: 16),
+        TextButton(
+          onPressed: _handleLocationDenied,
+          child: Text(
+            'ne pas partager ma localisation'.tr(),
+            style: TextStyle(
+              fontSize: 14,
+              color: Colors.grey.shade600,
+              fontWeight: FontWeight.w400,
+            ),
+          ),
+        ),
+      ],
     );
   }
-
   void _handleLocationPermission() async {
     bool hasPermission = await _permissionsService.requestLocationPermission();
     if (hasPermission) {

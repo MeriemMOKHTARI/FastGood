@@ -1,59 +1,55 @@
 import 'package:flutter/material.dart';
 import '../../config/config.dart';
-import 'package:shared_preferences/shared_preferences.dart';
-import 'package:easy_localization/easy_localization.dart';
 
 class IntroPage2 extends StatelessWidget {
   const IntroPage2({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      decoration: const BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topCenter,
-          end: Alignment.bottomCenter,
-          colors: [
-            Color(0xFF042628),
-            Color(0xFF70B9BE),
-          ],
+    return Stack(
+      children: [
+        // Image de fond
+        Image.asset(
+          'assets/images/onboard.png', // Remplacez par le nom de votre image
+          fit: BoxFit.cover,
+          width: double.infinity,
+          height: double.infinity,
         ),
-      ),
-      child: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 20),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-               Image.asset(
-                'assets/images/intro_page_2.png', // Replace with your actual image file name
-                width: 250, // Adjust the width as needed
-                height: 250, // Adjust the height as needed
-                fit: BoxFit.contain,
-              ),
-                Text(
-               'Fast_delivery'.tr(),
-              style: TextStyle(
-                fontSize: 20,
-                color: Colors.black54,
-                fontWeight: FontWeight.bold,
-              ),
-              textAlign: TextAlign.center,
+        SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 20),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Image.asset(
+                  'assets/images/intro_page_1.png',
+                  width: 250,
+                  height: 250,
+                  fit: BoxFit.contain,
+                ),
+                const Text(
+                  Config.onboardingTitle1,
+                  style: TextStyle(
+                    fontSize: 20,
+                   color: const Color(0xFF3A3A3A),
+                    fontWeight: FontWeight.bold,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 20),
+                const Text(
+                  Config.onboardingDesc1,
+                  style: TextStyle(
+                    fontSize: 16,
+                     color: const Color(0xFF3A3A3A),
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+              ],
             ),
-              const SizedBox(height: 20),
-               Text(
-              'Take_advantage_of_our_fast_and_efficient_delivery_service!'.tr(),
-              style: TextStyle(
-                fontSize: 16,
-                   color: Color(0xCCFFFFFF)
-              ),
-              textAlign: TextAlign.center,
-            ),
-            ],
           ),
         ),
-      ),
+      ],
     );
   }
 }
-

@@ -3,12 +3,18 @@ import 'package:appwrite/appwrite.dart';
 import 'package:appwrite/enums.dart';
 import 'package:appwrite/models.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../config/config.dart';
 
 class MapService {
   final storage = FlutterSecureStorage();
 
-Future<Map<String, String>> addFavoriteAddress({
+  Future<String?> _getCachedUserId() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getString('cached_user_id');
+  }
+
+Future<Map<String, dynamic>> addFavoriteAddress({
     required String label,
     required String address,
     required double latitude,
@@ -22,15 +28,33 @@ Future<Map<String, String>> addFavoriteAddress({
 
     try {
       final userId = await storage.read(key: 'user_id');
+      print('Retrieved user_id for adding address: $userId');
+
       if (userId == null) {
+        print('No user_id found in storage');
         return {'status': '400', 'message': 'User ID not found'};
       }
+
+      // Update the label conversion logic
+      String labelChar;
+      switch (label.toLowerCase()) {
+        case 'home':
+          labelChar = 'H';
+          break;
+        case 'office':
+          labelChar = 'W';  
+          break;
+        default:
+          labelChar = 'C';
+      }
+
+      print('Adding address - Label: $labelChar, UserId: $userId');
 
       Execution result = await functions.createExecution(
         functionId: "manageFavoriteAddresses",
         body: json.encode({
           "user_id": userId,
-          "label": label[0].toUpperCase(), // H for Home, W for Work, O for Others
+          "label": labelChar,
           "address": address,
           "latitude": latitude,
           "longitude": longitude,
@@ -38,30 +62,105 @@ Future<Map<String, String>> addFavoriteAddress({
         method: ExecutionMethod.pOST,
       );
 
+      print('Add address response body: ${result.responseBody}');
+
       if (result.status == 'completed') {
         final responseBody = json.decode(result.responseBody);
-        print('addFavoriteAddress response: $responseBody');
+        print('Add address parsed response: $responseBody');
         
+        // Return the actual status from the backend
         if (responseBody['status'] == '200') {
-          print('Address added successfully');
-          return {'status': '200'};
-        } else if (responseBody['status'] == '400') {
-          print('Missing required fields');
-          return {'status': '400'};
+          return {
+            'status': '200',
+            'data': responseBody['data']
+          };
+        } else if (responseBody['status'] == '600') {
+          return {
+            'status': '600',
+            'message': 'Home address already exists'
+          };
+        } else if (responseBody['status'] == '602') {
+          return {
+            'status': '602',
+            'message': 'Work address already exists'
+          };
         } else {
-          return {'status': 'ERR'};
+          return {
+            'status': responseBody['status'] ?? 'ERR',
+            'message': responseBody['message'] ?? 'Unknown error'
+          };
         }
-      } else {
-        print('Function execution failed: ${result.status}');
-        return {'status': 'ERR'};
       }
+      return {'status': 'ERR', 'message': 'Function execution failed'};
     } catch (e) {
       print('Error in addFavoriteAddress: $e');
-      return {'status': 'ERR'};
+      return {'status': 'ERR', 'message': e.toString()};
     }
   }
 
-  Future<Map<String, dynamic>> getFavoriteAddresses() async {
+
+
+
+
+  
+
+ Future<Map<String, dynamic>> updateFavoriteAddress({
+  required String documentId,
+  required String address,
+  required double latitude,
+  required double longitude,
+}) async {
+  Client client = Client()
+      .setEndpoint(Config.appwriteEndpoint)
+      .setProject(Config.appwriteProjectId)
+      .setSelfSigned(status: true);
+  Functions functions = Functions(client);
+
+  try {
+    print('Updating address with ID: $documentId');
+
+    Execution result = await functions.createExecution(
+      functionId: "manageFavoriteAddresses",
+      body: json.encode({
+        "document_id": documentId,
+        "address": address,
+        "latitude": latitude,
+        "longitude": longitude,
+      }),
+      method: ExecutionMethod.pUT,
+    );
+    
+    if (result.status == 'completed') {
+      final responseBody = json.decode(result.responseBody);
+      print('Update address response: $responseBody');
+      
+      if (responseBody['status'] == '200') {
+        return {
+          'status': '200',
+          'data': responseBody['data']
+        };
+      } else if (responseBody['status'] == '400') {
+        return {
+          'status': '400',
+          'message': 'Missing required fields'
+        };
+      } 
+      return {'status': 'ERR', 'message': 'Unknown error'};
+    } 
+    return {'status': 'ERR', 'message': 'Function execution failed'};
+  } catch (e) {
+    print('Error in updateFavoriteAddress: $e');
+    return {'status': 'ERR', 'message': e.toString()};
+  }
+}
+
+
+
+Future<Map<String, dynamic>> getFavoriteAddresses(
+    String entry_id,
+    Account account,
+    Databases databases
+  ) async {
     Client client = Client()
         .setEndpoint(Config.appwriteEndpoint)
         .setProject(Config.appwriteProjectId)
@@ -69,119 +168,78 @@ Future<Map<String, String>> addFavoriteAddress({
     Functions functions = Functions(client);
 
     try {
-      final userId = await storage.read(key: 'user_id');
-
       Execution result = await functions.createExecution(
         functionId: "manageFavoriteAddresses",
         body: json.encode({
-          "user_id": userId,
+          "user_id": entry_id,
         }),
         method: ExecutionMethod.gET,
       );
-
+      
       if (result.status == 'completed') {
         final responseBody = json.decode(result.responseBody);
-        print('getFavoriteAddresses response: $responseBody');
+        print('Response from getFavoriteAddresses: $responseBody');
         
         if (responseBody['status'] == '200') {
           return {
             'status': '200',
-            'data': responseBody['data'],
+            'data': responseBody['data']
           };
         } else if (responseBody['status'] == '400') {
-          return {'status': '400'};
-        } else {
-          return {'status': 'ERR'};
-        }
-      } else {
-        print('Function execution failed: ${result.status}');
-        return {'status': 'ERR'};
-      }
+          return {
+            'status': '400',
+            'message': 'Missing required fields'
+          };
+        } 
+        return {'status': 'ERR', 'message': 'Unknown error'};
+      } 
+      return {'status': 'ERR', 'message': 'Function execution failed'};
     } catch (e) {
       print('Error in getFavoriteAddresses: $e');
-      return {'status': 'ERR'};
+      return {'status': 'ERR', 'message': e.toString()};
     }
   }
+  Future<Map<String, dynamic>> deleteFavoriteAddress(String documentId) async {
+  Client client = Client()
+      .setEndpoint(Config.appwriteEndpoint)
+      .setProject(Config.appwriteProjectId)
+      .setSelfSigned(status: true);
+  Functions functions = Functions(client);
 
-  Future<Map<String, String>> updateFavoriteAddress({
-    required String documentId,
-    required String address,
-    required double latitude,
-    required double longitude,
-  }) async {
-    Client client = Client()
-        .setEndpoint(Config.appwriteEndpoint)
-        .setProject(Config.appwriteProjectId)
-        .setSelfSigned(status: true);
-    Functions functions = Functions(client);
+  try {
+    print('Deleting address with ID: $documentId');
 
-    try {
-      Execution result = await functions.createExecution(
-        functionId: "manageFavoriteAddresses",
-        body: json.encode({
-          "document_id": documentId,
-          "address": address,
-          "latitude": latitude,
-          "longitude": longitude,
-        }),
-        method: ExecutionMethod.pUT,
-      );
-
-      if (result.status == 'completed') {
-        final responseBody = json.decode(result.responseBody);
-        print('updateFavoriteAddress response: $responseBody');
-        
-        if (responseBody['status'] == '200') {
-          return {'status': '200'};
-        } else if (responseBody['status'] == '400') {
-          return {'status': '400'};
-        } else {
-          return {'status': 'ERR'};
-        }
-      } else {
-        print('Function execution failed: ${result.status}');
-        return {'status': 'ERR'};
-      }
-    } catch (e) {
-      print('Error in updateFavoriteAddress: $e');
-      return {'status': 'ERR'};
-    }
+    Execution result = await functions.createExecution(
+      functionId: "manageFavoriteAddresses",
+      body: json.encode({
+        "document_id": documentId,
+      }),
+      method: ExecutionMethod.dELETE,
+    );
+    
+    if (result.status == 'completed') {
+      final responseBody = json.decode(result.responseBody);
+      print('Delete address response: $responseBody');
+      
+      if (responseBody['status'] == '200') {
+        return {
+          'status': '200',
+          'message': 'Address deleted successfully'
+        };
+      } else if (responseBody['status'] == '400') {
+        return {
+          'status': '400',
+          'message': 'Missing required fields'
+        };
+      } 
+      return {'status': 'ERR', 'message': 'Unknown error'};
+    } 
+    return {'status': 'ERR', 'message': 'Function execution failed'};
+  } catch (e) {
+    print('Error in deleteFavoriteAddress: $e');
+    return {'status': 'ERR', 'message': e.toString()};
   }
+}
 
-  Future<Map<String, String>> deleteFavoriteAddress(String documentId) async {
-    Client client = Client()
-        .setEndpoint(Config.appwriteEndpoint)
-        .setProject(Config.appwriteProjectId)
-        .setSelfSigned(status: true);
-    Functions functions = Functions(client);
 
-    try {
-      Execution result = await functions.createExecution(
-        functionId: "manageFavoriteAddresses",
-        body: json.encode({
-          "document_id": documentId,
-        }),
-        method: ExecutionMethod.dELETE,
-      );
-
-      if (result.status == 'completed') {
-        final responseBody = json.decode(result.responseBody);
-        print('deleteFavoriteAddress response: $responseBody');
-        
-        if (responseBody['status'] == '200') {
-          return {'status': '200'};
-        } else if (responseBody['status'] == '400') {
-          return {'status': '400'};
-        } else {
-          return {'status': 'ERR'};
-        }
-      } else {
-        print('Function execution failed: ${result.status}');
-        return {'status': 'ERR'};
-      }
-    } catch (e) {
-      print('Error in deleteFavoriteAddress: $e');
-      return {'status': 'ERR'};
-    }
-  }
 }

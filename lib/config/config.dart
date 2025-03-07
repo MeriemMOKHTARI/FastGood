@@ -5,6 +5,7 @@ import 'package:appwrite/appwrite.dart';
 
 class Config {
   static Map<String, dynamic>? _config;
+  Color redd = Color(0xFFE63946);
 
   static Future<void> loadConfig() async {
     final configString = await rootBundle.loadString('config.json');
@@ -44,8 +45,8 @@ class Config {
   // Theme Configuration
   static final themeData = ThemeData(
   
-    primaryColor: const Color(0xFF70B9BE),
-    scaffoldBackgroundColor: const Color.fromARGB(255, 5, 4, 32),
+   primaryColor: const Color(0xFFFFF8E1),
+    scaffoldBackgroundColor: const Color(0xFFFF7F50),
     fontFamily: 'SofiaPro', 
     textTheme: const TextTheme(
       bodyLarge: TextStyle(fontFamily: 'SofiaPro'),
@@ -58,7 +59,6 @@ class Config {
   static const String appName = 'Datalock';
 
   // Logo Widget
-/*************  ✨ Codeium Command ⭐  *************/
 /// Builds a logo widget which consists of a circular container with a
 /// centered text 'LOGO' and the app name below it.
 /// 
@@ -66,7 +66,6 @@ class Config {
 /// background color. The app name is displayed in bold white text with a
 /// font size of 24 below the container.
 
-/******  4024401b-3600-4f8d-a02d-694db573be7a  *******/
   static Widget buildLogo() {
   return Column(
     children: [

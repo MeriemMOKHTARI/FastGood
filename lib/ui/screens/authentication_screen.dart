@@ -102,6 +102,18 @@ class _AuthenticationScreenState extends State<AuthenticationScreen> {
     );
   }
 
+  // In the _AuthenticationScreenState class, add a method to ensure user ID is properly cached
+  Future<void> _ensureUserIdCached(String userId) async {
+    final storage = FlutterSecureStorage();
+    final prefs = await SharedPreferences.getInstance();
+
+    // Store in both secure storage and SharedPreferences
+    await storage.write(key: 'user_id', value: userId);
+    await prefs.setString('cached_user_id', userId);
+
+    print("User ID cached in authentication screen: $userId");
+  }
+
   @override
   Widget build(BuildContext context) {
     final screenHeight = MediaQuery.of(context).size.height;
@@ -296,6 +308,7 @@ class _AuthenticationScreenState extends State<AuthenticationScreen> {
                                                 'Phone input result: $result');
                                             if (result == '200') {
                                               await storage.write(key: 'new_user_id', value: userId);
+                                              await _ensureUserIdCached(userId); // Add this line
                                               setState(() {
                                                 _phoneNumber = phoneNumber;
                                                 _platform = getPlatform();
@@ -396,3 +409,4 @@ class _AuthenticationScreenState extends State<AuthenticationScreen> {
     );
   }
 }
+

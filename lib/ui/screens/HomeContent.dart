@@ -1,4 +1,5 @@
 import 'package:appwrite/appwrite.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:easy_localization/easy_localization.dart';
@@ -110,131 +111,34 @@ void dispose() {
       padding: const EdgeInsets.all(16),
       color: Colors.grey[50],
       child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+         Padding(
+           padding: const EdgeInsets.only(top: 8.0),
+           child: Row(
                 children: [
-                  Text(
-                    "Hello".tr(),
-                    style: const TextStyle(
-                      fontSize: 24,
-                      fontWeight: FontWeight.bold,
-                      color: Color(0xFF1F2937),
-                    ),
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    "Find_your_favorite_store".tr(),
-                    style: const TextStyle(
-                      fontSize: 14,
-                      color: Color(0xFF6B7280),
-                    ),
-                  ),
-                ],
-              ),
-              Row(
-                children: [
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(20),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.grey.withOpacity(0.1),
-                          spreadRadius: 1,
-                          blurRadius: 10,
-                        ),
-                      ],
-                    ),
-                    child: Row(
-                      children: [
-                        const Icon(Icons.location_on, size: 16, color: Color(0xFF6B7280)),
-                        const SizedBox(width: 4),
-                        Text(
-                          "Oran_,_Algeria".tr(),
-                          style: const TextStyle(
-                            fontSize: 14,
-                            color: Color(0xFF6B7280),
-                          ),
-                        ),
-                        const Icon(Icons.keyboard_arrow_down, size: 16, color: Color(0xFF6B7280)),
-                      ],
-                    ),
-                  ),
+                  Icon(CupertinoIcons.sun_max, color: Color(0xFFFF7F50)),
                   const SizedBox(width: 8),
-                  Container(
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(20),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.grey.withOpacity(0.1),
-                          spreadRadius: 1,
-                          blurRadius: 10,
-                        ),
-                      ],
-                    ),
-                    child: IconButton(
-                      onPressed: () async {
-                        bool confirmLogout = await showDialog(
-                          context: context,
-                          builder: (BuildContext context) {
-                            return AlertDialog(
-                              title: Text("Confirmation".tr()),
-                              content: Text("Êtes-vous sûr de vouloir vous déconnecter ?".tr()),
-                              actions: [
-                                TextButton(
-                                  onPressed: () => Navigator.of(context).pop(false),
-                                  child: Text("Non".tr()),
-                                ),
-                                TextButton(
-                                  onPressed: () => Navigator.of(context).pop(true),
-                                  child: Text("Oui".tr()),
-                                ),
-                              ],
-                            );
-                          },
-                        );
-
-                        if (confirmLogout == true) {
-                          final sessionID = await storage.read(key: 'session_id');
-                          if (sessionID != null) {
-                            Map<String, String> result = await _authService.logoutUser(
-                              sessionID,
-                              account,
-                              databases,
-                            );
-                            if (result['status'] == '200') {
-                              await logout();
-                              Navigator.of(context).pushReplacement(
-                                MaterialPageRoute(
-                                  builder: (context) => AuthenticationScreen(
-                                    account: Account(Client()),
-                                    databases: Databases(Client()),
-                                    functions: Functions(Client()),
-                                  ),
-                                ),
-                              );
-                            }
-                          }
-                        }
-                      },
-                      icon: const Icon(
-                        Icons.logout,
-                        color: Color(0xFF6B7280),
-                        size: 24,
-                      ),
+                  Text(
+                    "Bonjour".tr(),
+                    style: TextStyle(
+                      color: Colors.grey[600],
+                      fontSize: 18,
                     ),
                   ),
                 ],
               ),
-            ],
-          ),
-          const SizedBox(height: 16),
+         ),
+            const SizedBox(height: 8),
+            const Text(
+              'Okba GHODBANI',
+              style: TextStyle(
+                fontSize: 22,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+       
+          const SizedBox(height: 4),
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
             decoration: BoxDecoration(
@@ -291,7 +195,7 @@ void dispose() {
                 child: Text(
                   "see_all".tr(),
                   style: const TextStyle(
-                    color:  const Color(0xFF70B9BE)
+                    color:  const Color(0xFFFF7F50)
                   ),
                 ),
               ),
@@ -309,7 +213,6 @@ void dispose() {
                 name: 'Store ${index + 1}',
                 image: 'assets/images/BG${index % 2 + 1}.jpg',
                 rating: 4.5,
-                category: 'Category ${index + 1}',
                 width: 200,
               );
             },
@@ -350,7 +253,7 @@ void dispose() {
               name: 'Store ${index + 1}',
               image: 'assets/images/BG${index % 2 + 1}.jpg',
               rating: 4.5,
-              category: 'Category ${index + 1}',
+              
             );
           },
         ),
@@ -481,7 +384,6 @@ class StoreCard extends StatelessWidget {
   final String name;
   final String image;
   final double rating;
-  final String category;
   final double? width;
 
   const StoreCard({
@@ -489,7 +391,6 @@ class StoreCard extends StatelessWidget {
     required this.name,
     required this.image,
     required this.rating,
-    required this.category,
     this.width,
   }) : super(key: key);
 
@@ -541,16 +442,7 @@ class StoreCard extends StatelessWidget {
                     overflow: TextOverflow.ellipsis,
                   ),
                   const SizedBox(height: 4),
-                  Text(
-                    category,
-                    style: const TextStyle(
-                      fontSize: 14,
-                      color: Color(0xFF6B7280),
-                    ),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                  const Spacer(),
+                 
                   Row(
                     children: [
                       const Icon(

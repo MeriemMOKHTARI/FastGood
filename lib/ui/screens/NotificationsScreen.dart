@@ -20,7 +20,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
       appBar: AppBar(
         title: const Text('Notifications'),
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.green),
+          icon: const Icon(Icons.arrow_back, color: Color.fromARGB(255, 240, 136, 33)),
           onPressed: () => Navigator.pop(context),
         ),
         backgroundColor: Colors.transparent,
@@ -97,7 +97,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
           child: CupertinoSwitch(
             value: value,
             onChanged: onChanged,
-            activeColor: Colors.green,
+            activeColor: const Color.fromARGB(255, 245, 157, 24),
           ),
         ),
       ],

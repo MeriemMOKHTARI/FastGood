@@ -41,7 +41,6 @@
     "You can enable notifications later in settings":"يمكنك تمكين الإشعارات لاحقًا في الإعدادات",
     "Hello \n Okba Ghodbani":"مرحبا عقبة الغضباني",
     "All stores":"جميع المتاجر",
-    "see all":"رؤية الكل",
     "Allowing notifications":"السماح بالإخطارات",
     "Receive notifications about your orders and special offers":"تلقي إشعارات حول طلباتك والعروض الخاصة",
     "Done":"تم",
@@ -188,6 +187,10 @@
   "Confirmation":"تاكيد",
   "Êtes-vous sûr de vouloir vous déconnecter ?":"هل انت متاكد من تسجيل الخروج؟",
   "Existing_Account":"حساب موجود",
-  "You_already_have_an_account._Please_log_in.":"لديك حساب بالفعل. يرجى تسجيل الدخول."
-
+  "You_already_have_an_account._Please_log_in.":"لديك حساب بالفعل. يرجى تسجيل الدخول.",
+  "Bonjour":"مرحبا",
+  "Popular_stores":"متاجر مشهورة",
+  "New_stores":"متاجر جديدة",
+  "Mes adresses":"العناوين",
+  "ne pas partager ma localisation":"لا تشارك موقعي"
 }

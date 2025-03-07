@@ -50,8 +50,7 @@ class _OtpInputState extends flutter.State<OtpInput> {
   final account = Config.getAccount();
   final databases = Config.getDatabases();
 
-  String? cachedUserId;
-
+String _cachedUserId = '';
   String getPlatform() {
     if (kIsWeb) {
       return 'web';
@@ -72,15 +71,39 @@ class _OtpInputState extends flutter.State<OtpInput> {
     _loadCachedUserId();
   }
 
-  Future<void> _loadCachedUserId() async {
-    final prefs = await SharedPreferences.getInstance();
-    setState(() {
-      cachedUserId = prefs.getString('cached_user_id');
-    });
-    if (cachedUserId == null) {
-      print("Attention : L'ID utilisateur mis en cache est null");
-    }
+ Future<void> _loadCachedUserId() async {
+  final prefs = await SharedPreferences.getInstance();
+  setState(() {
+    _cachedUserId = (prefs.getString('cached_user_id') ?? '');
+  });
+  
+  if (_cachedUserId.isEmpty) {
+    print("Attention : L'ID utilisateur mis en cache est vide");
+    // Try to recover the ID from another source if possible
+    _recoverUserId();
+  } else {
+    print("User ID loaded from cache: $_cachedUserId");
   }
+}
+
+// Add a recovery method to try getting the ID from other storage
+Future<void> _recoverUserId() async {
+  final storage = FlutterSecureStorage();
+  final userId = await storage.read(key: 'user_id') ?? 
+                 await storage.read(key: 'new_user_id');
+  
+  if (userId != null && userId.isNotEmpty) {
+    print("Recovered user ID from secure storage: $userId");
+    // Save it to SharedPreferences for future use
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString('cached_user_id', userId);
+    
+    setState(() {
+      _cachedUserId = userId;
+    });
+  }
+}
+ 
 
   @override
   void dispose() {
@@ -269,45 +292,50 @@ class _OtpInputState extends flutter.State<OtpInput> {
             ),
           ),
             SizedBox(height: 24),
-         flutter.CustomButton(
-              onPressed: () async {
-                if (cachedUserId == null) {
-                  print("Erreur : L'ID utilisateur mis en cache est null");
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text('Une erreur est survenue. Veuillez réessayer.'.tr())),
-                  );
-                  return;
-                }
-                
-                final authService = AuthService();
-                String result = await authService.VerifyOTP(
-                  widget.phoneNumber,
-                  otpControllers.map((controller) => controller.text).join(''),
-                  cachedUserId!, // Utilisation de l'ID utilisateur mis en cache
-                  account,
-                  databases,
-                );
-                print("Vérification OTP pour l'utilisateur : $cachedUserId");
-                print("Résultat de la vérification : $result");
-                
-                if (result == '200') {
-                  await widget.onSubmit(cachedUserId!, widget.phoneNumber, result, widget.name, widget.prenom);
-                } else if (result == '400') {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text('please_provide_a_valid_OTP'.tr())),
-                  );
-                } else if (result == '333') {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text('incorrect_OTP'.tr())),
-                  );
-                } else if (result == 'ERR') {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text('Erreur de connexion. Merci d\'essayer à nouveau.'.tr())),
-                  );
-                }
-              },
-              text: 'Continue'.tr(),
-            ),
+       flutter.CustomButton(
+  onPressed: () async {
+    if (_cachedUserId.isEmpty) {
+      // Try to recover the ID one more time
+      await _recoverUserId();
+      
+      if (_cachedUserId.isEmpty) {
+        print("Erreur : L'ID utilisateur mis en cache est toujours vide");
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Une erreur est survenue. Veuillez réessayer.'.tr())),
+        );
+        return;
+      }
+    }
+    
+    final authService = AuthService();
+    String result = await authService.VerifyOTP(
+      widget.phoneNumber,
+      otpControllers.map((controller) => controller.text).join(''),
+      _cachedUserId, // Now this won't be empty
+      account,
+      databases,
+    );
+    
+    print("Résultat de la vérification : $result");
+    
+    if (result == '200') {
+      await widget.onSubmit(_cachedUserId, widget.phoneNumber, result, widget.name, widget.prenom);
+    } else if (result == '400') {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('please_provide_a_valid_OTP'.tr())),
+      );
+    } else if (result == '333') {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('incorrect_OTP'.tr())),
+      );
+    } else if (result == 'ERR') {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Erreur de connexion. Merci d\'essayer à nouveau.'.tr())),
+      );
+    }
+  },
+  text: 'Continue'.tr(),
+),
             
             
 // ccccccc

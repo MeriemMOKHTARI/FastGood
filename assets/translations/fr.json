@@ -41,7 +41,6 @@
     "You can enable notifications later in settings":"Vous pouvez activer les notifications plus tard dans les paramètres",
     "Hello \n Okba Ghodbani":"Salut \n Okba Ghodbani",
     "All stores":"tous les magasins",
-    "see all":"voir tous",
     "Allowing notifications":"autoriser les notifications",
     "Receive notifications about your orders and special offers":"Recevez des notifications sur vos commandes et offres spéciales",
     "Next":"Suivant",
@@ -184,7 +183,9 @@
   "Confirmation":"Confirmation",
   "Êtes-vous sûr de vouloir vous déconnecter ?":"Êtes-vous sûr de vouloir vous déconnecter ?",
   "Existing_Account":"Compte existant",
-  "You_already_have_an_account._Please_log_in.":"Vous avez déjà un compte. Veuillez vous connecter."
-
-
+  "You_already_have_an_account._Please_log_in.":"Vous avez déjà un compte. Veuillez vous connecter.",
+  "Bonjour":"Bonjour",
+  "Popular_stores":"Magasins populaires",
+  "New_stores":"Magasins nouveaux",
+  "ne pas partager ma localisation":"Ne pas partager ma localisation"
   }

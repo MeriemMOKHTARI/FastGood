@@ -31,9 +31,9 @@ class SplashScreen extends StatefulWidget {
 class _SplashScreenState extends State<SplashScreen> {
   final storage = FlutterSecureStorage();
 
-  Future<bool> checkUserSession() async {print('hhhhhhhhhhhhhhhhhhhh');
+  Future<bool> checkUserSession() async {
 
-    final sessionID = await storage.read(key: 'new_user_id');
+    final sessionID = await storage.read(key: 'session_id');
     if (sessionID!=null) {
       return true;
     } else {
@@ -70,7 +70,7 @@ class _SplashScreenState extends State<SplashScreen> {
 
   void initializeApp() async {
     await setAppLanguage();
-    await Future.delayed(Duration(seconds: 2)); // Add a delay for splash screen visibility
+    await Future.delayed(Duration(seconds: 2)); 
     navigateBasedOnSession();
   }
 
@@ -105,7 +105,7 @@ class _SplashScreenState extends State<SplashScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF70B9BE),
+      backgroundColor: const Color.fromARGB(255, 245, 205, 191),
       body: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,

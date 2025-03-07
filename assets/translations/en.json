@@ -90,7 +90,6 @@
     "Hello":"Hello",
     "Oran_,_Algeria":"Oran , Algeria",
     "All_stores": "All stores",
-    "see_all": "see all",
     "Home": "Home",
     "Orders": "Orders",
     "Search": "Search",
@@ -181,5 +180,11 @@
   "Confirmation":"Confirmation",
   "Êtes-vous sûr de vouloir vous déconnecter ?":"Are you sure you want to log out?",
   "Existing_Account":"Existing Account",
-  "You_already_have_an_account._Please_log_in.":"You already have an account. Please log in."
+  "You_already_have_an_account._Please_log_in.":"You already have an account. Please log in.",
+  "Bonjour":"Hello",
+  "Popular_stores":"Popular stores",
+  "New_stores":"New stores",
+  "see_all":"see all",
+  "Mes adresses":"My addresses",
+  "ne pas partager ma localisation":"Do not share my location"
   }

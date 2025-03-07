@@ -6,7 +6,9 @@ import 'package:geocoding/geocoding.dart';
 import 'SaveAddressScreen.dart';
 
 class MapScreen extends StatefulWidget {
-  const MapScreen({super.key});
+  final LatLng initialLocation;
+
+  const MapScreen({Key? key, required this.initialLocation}) : super(key: key);
 
   @override
   State<MapScreen> createState() => _MapScreenState();
@@ -65,11 +67,12 @@ class _MapScreenState extends State<MapScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.white,
       appBar: AppBar(
         backgroundColor: Colors.white,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Color(0xFF70B9BE)),
+          icon: const Icon(Icons.arrow_back, color: Color(0xFFFF7F50),),
           onPressed: () => Navigator.pop(context),
         ),
         title: const Text(
@@ -79,37 +82,30 @@ class _MapScreenState extends State<MapScreen> {
       ),
       body: Stack(
         children: [
-          if (!_isLoading && _currentLocation != null)
-            GoogleMap(
-              initialCameraPosition: CameraPosition(
-                target: _currentLocation!,
-                zoom: 15,
-              ),
-              onMapCreated: (controller) {
-                _mapController = controller;
-              },
-              markers: _selectedLocation != null
-                  ? {
-                      Marker(
-                        markerId: const MarkerId('selected'),
-                        position: _selectedLocation!,
-                      ),
-                    }
-                  : {},
-              onTap: (LatLng location) {
-                setState(() {
-                  _selectedLocation = location;
-                });
-              },
-              myLocationEnabled: true,
-              myLocationButtonEnabled: true,
+          GoogleMap(
+            initialCameraPosition: CameraPosition(
+              target: widget.initialLocation,
+              zoom: 15,
             ),
-          if (_isLoading)
-            const Center(
-              child: CircularProgressIndicator(
-                color: Color(0xFF70B9BE),
-              ),
-            ),
+            onMapCreated: (controller) {
+              _mapController = controller;
+            },
+            markers: _selectedLocation != null
+                ? {
+                    Marker(
+                      markerId: const MarkerId('selected'),
+                      position: _selectedLocation!,
+                    ),
+                  }
+                : {},
+            onTap: (LatLng location) {
+              setState(() {
+                _selectedLocation = location;
+              });
+            },
+            myLocationEnabled: true,
+            myLocationButtonEnabled: true,
+          ),
           if (_selectedLocation != null)
             Positioned(
               left: 16,
@@ -117,17 +113,10 @@ class _MapScreenState extends State<MapScreen> {
               bottom: 16,
               child: ElevatedButton(
                 onPressed: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => SaveAddressScreen(
-                        location: _selectedLocation!,
-                      ),
-                    ),
-                  );
+                  Navigator.pop(context, _selectedLocation);
                 },
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.green,
+                  backgroundColor: Color(0xFFFF7F50),
                   padding: const EdgeInsets.symmetric(vertical: 16),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(8),
@@ -138,6 +127,7 @@ class _MapScreenState extends State<MapScreen> {
                   style: TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.w500,
+                    color: Colors.white,
                   ),
                 ),
               ),
@@ -147,3 +137,4 @@ class _MapScreenState extends State<MapScreen> {
     );
   }
 }
+

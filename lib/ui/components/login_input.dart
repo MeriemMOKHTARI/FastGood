@@ -378,13 +378,14 @@ class _LoginInputState extends State<LoginInput> {
                       await storage.write(key: 'new_user_id', value: userID);
                       String smsResult = await authService.sendSMS(
                         completePhoneNumber!,
-                        getPlatform(),
+                        "and",
                         "255.255.255.255",
                         userID,
                         account,
                         databases,
                       );
                       print("tlf: $completePhoneNumber! smsResult: $smsResult");
+                      print("useeeerid: $userID");
 
                       if (smsResult == '200') {
                         widget.onOtpNavigate(

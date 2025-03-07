@@ -129,10 +129,11 @@ class _PhoneInputState extends flutter.State<PhoneInput> {
     );
   }
 
-  Future<void> _cacheUserId(String userId) async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setString('cached_user_id', userId);
-  }
+    Future<void> _cacheUserId(String userId) async {
+  final prefs = await SharedPreferences.getInstance();
+  await prefs.setString('cached_user_id', userId);
+  print("User ID cached successfully: $userId");
+}
 
 void _sendSMS() async {
   final authService = AuthService();
@@ -187,6 +188,7 @@ void _sendSMS() async {
         print(completePhoneNumber! + " " + "and" + " " + ("255.255.255.255") + " " + userID);
         if (result == '200') {
           print('SMS sent successfully, navigating to OTP screen...');
+          print("send sms succ userID que je veux cacher et passer: " + userID);
           await _cacheUserId(userID); // Cache the user ID
           widget.onSubmit(userID, completePhoneNumber!, result, userID);
         } else if (result == '333') {
@@ -313,7 +315,7 @@ Container(
                 borderRadius: BorderRadius.circular(12),
                 boxShadow: _isFocused ? [
                   BoxShadow(
-                    color: flutter.Color.fromARGB(255, 7, 83, 90).withOpacity(0.4),
+                    color: flutter.Color.fromARGB(255, 255, 191, 131).withOpacity(0.4),
                     blurRadius: 8,
                     spreadRadius: 0.5,
                     offset: Offset(0, 0),
@@ -416,7 +418,7 @@ Container(
                         text: 'connectez-vous'.tr(),
                         style: flutter.TextStyle(
                           decoration: flutter.TextDecoration.underline,
-                          color: flutter.Theme.of(context).primaryColor,
+                          color: flutter.Theme.of(context).scaffoldBackgroundColor,
                         ),
                       ),
                     ],
