@@ -202,5 +202,22 @@
   "Mes commandes":"الطلبات",
   "Devenir livreur":"صاحب توصيل",
   "Devenir partenaire":"شريك",
-  "Mon profil":"الملف الشخصي"
+  "Mon profil":"الملف الشخصي",
+  "Male":"ذكر",
+  "Female":"انثى",
+  "Select Gender":"حدد الجنس",
+  "Gender":"الجنس",
+  "Save":"حفظ",
+  "Profil mis à jour avec succès !":"تم تحديث الملف الشخصي بنجاح !",
+  "Erreur lors de la mise à jour du profil.":"خطأ في تحديث الملف الشخصي.",
+  "Notification Push":"الاشعارات",
+  "Notifications par SMS":"الاشعارات بالرسالة",
+  "Notification par email":"الاشعارات بالبريد الالكتروني",
+  "Recevez les dernières offres et promotions via l'application":"استقبل العروض والعروض المميزة من خلال التطبيق",
+  "Recevez les dernières offres et promotions via SMS":"استقبل العروض والعروض المميزة من خلال الرسالة",
+  "Recevez les dernières offres et promotions via email":"استقبل العروض والعروض المميزة من خلال البريد الالكتروني",
+  "Accueil":"الرئيسية",
+  "favoris":"المفضلة",
+  "Carte":"سلة"
+  
 }

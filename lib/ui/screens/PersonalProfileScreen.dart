@@ -89,11 +89,11 @@ class _PersonalProfileScreenState extends State<PersonalProfileScreen> {
 
     if (status == '200') {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Profil mis à jour avec succès !')),
+        SnackBar(content: Text('Profil mis à jour avec succès !'.tr())),
       );
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(' Erreur lors de la mise à jour du profil.')),
+        SnackBar(content: Text('Erreur lors de la mise à jour du profil.'.tr())),
       );
     }
 
@@ -129,7 +129,7 @@ class _PersonalProfileScreenState extends State<PersonalProfileScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    _buildLabel('Name'.tr()),
+                    _buildLabel('name'.tr()),
                     _buildTextField(_nameController, 'Enter_your_name'.tr()),
                     SizedBox(height: 20),
                     _buildLabel('forename'.tr()),
@@ -199,15 +199,15 @@ class _PersonalProfileScreenState extends State<PersonalProfileScreen> {
         value: _selectedSex.isNotEmpty ? _selectedSex : null, // Assurez-vous que null est géré
         isExpanded: true,
         icon: Icon(Icons.keyboard_arrow_down),
-        hint: Text("Select Gender"), // Afficher une invite par défaut
+        hint: Text("Select Gender".tr()), // Afficher une invite par défaut
         items: [
           DropdownMenuItem(
             value: "M",
-            child: Text("Male"),
+            child: Text("Male".tr()),
           ),
           DropdownMenuItem(
             value: "F",
-            child: Text("Female"),
+            child: Text("Female".tr()),
           ),
         ],
         onChanged: (String? newValue) {

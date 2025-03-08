@@ -196,5 +196,21 @@
   "Mes commandes":"My orders",
   "Devenir partenaire":"Become a partner",
   "Devenir livreur":"Become a delivery man",
- "Mon profil":"My profile"
+ "Mon profil":"My profile",
+ "Select Gender":"Select Gender",
+ "Male":"Male",
+ "Female":"Female",
+ "Gender":"Gender",
+ "Save":"Save",
+ "Profil mis à jour avec succès !":"Profile updated successfully!",
+ "Erreur lors de la mise à jour du profil.":"Error updating profile.",
+ "Notification Push":"Notification Push",
+ "Notifications par SMS":"Notifications SMS",
+ "Notification par email":"Notifications email",
+ "Recevez les dernières offres et promotions via l'application":"Receive the latest offers and promotions via the application",
+ "Recevez les dernières offres et promotions via SMS":"Receive the latest offers and promotions via SMS",
+ "Recevez les dernières offres et promotions via email":"Receive the latest offers and promotions via email",
+ "Accueil":"Home",
+ "favoris":"favorites",
+ "Carte":"cart"
   }

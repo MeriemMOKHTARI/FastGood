@@ -306,10 +306,10 @@ void dispose() {
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceAround,
           children: [
-            _buildNavItem(Icons.home_outlined, Icons.home, 0, "Home"),
-            _buildNavItem(Icons.search_outlined, Icons.search, 1, "Search"),
-            _buildNavItem(Icons.notifications_none_outlined, Icons.notifications, 2, "Notifications"),
-            _buildNavItem(Icons.person_outline_outlined, Icons.person, 3, "Profile"),
+            _buildNavItem(Icons.home_outlined, Icons.home, 0, "Home".tr()),
+            _buildNavItem(Icons.search_outlined, Icons.search, 1, "Search".tr()),
+            _buildNavItem(Icons.notifications_none_outlined, Icons.notifications, 2, "Notifications".tr()),
+            _buildNavItem(Icons.person_outline_outlined, Icons.person, 3, "Profile".tr()),
           ],
         ),
       ),
