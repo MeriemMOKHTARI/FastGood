@@ -33,12 +33,12 @@ class PermissionCard extends StatelessWidget {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Icon(icon, size: 64, color: Config.themeData.primaryColor),
+              Icon(icon, size: 64, color: Config.themeData.scaffoldBackgroundColor),
               const SizedBox(height: 24),
               Text(
                 title,
                 style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                      color: Config.themeData.primaryColor,
+                      color: Config.themeData.scaffoldBackgroundColor,
                       fontWeight: FontWeight.bold,
                     ),
                 textAlign: TextAlign.center,
@@ -63,7 +63,7 @@ class PermissionCard extends StatelessWidget {
                   ElevatedButton(
                     onPressed: onAccept,
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: Config.themeData.primaryColor,
+                      backgroundColor: Config.themeData.scaffoldBackgroundColor,
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(8),
                       ),

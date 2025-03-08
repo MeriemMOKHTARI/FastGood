@@ -1,4 +1,5 @@
 import 'package:datalock/config/config.dart';
+import 'package:datalock/main.dart';
 import 'package:datalock/services/auth_service.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
@@ -10,15 +11,53 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:appwrite/appwrite.dart';
 import 'package:datalock/ui/screens/authentication_screen.dart';
+import '../../services/user_service.dart';
+import 'package:easy_localization/easy_localization.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({Key? key}) : super(key: key);
+
 
   @override
   _ProfileScreenState createState() => _ProfileScreenState();
 }
 
 class _ProfileScreenState extends State<ProfileScreen> {
+  String userName = "";
+  String userSurname = "";
+
+  @override
+  void initState() {
+    super.initState();
+    _loadUserInfo();
+  }
+
+  Future<void> _loadUserInfo() async {
+    final userService = UserService(); // Créer une instance
+final user = await userService.getUserProfile();
+   if (user != null) {
+      setState(() {
+        userName = user['user_name'] ?? "";
+        userSurname = user['family_name'] ?? ""; // Vérifie le bon nom de clé
+      });
+    }
+  }
+
+   Future<void> _openYassirApp() async {
+    const appScheme = 'yassirrider://';
+    const playStoreUrl = 'https://play.google.com/store/apps/details?id=com.yatechnologies.yassir_rider&pcampaignid=web_share';
+    
+    try {
+      final bool launched = await launchUrl(Uri.parse(appScheme), mode: LaunchMode.externalApplication);
+      if (!launched) {
+        await launchUrl(Uri.parse(playStoreUrl), mode: LaunchMode.externalApplication);
+      }
+    } catch (e) {
+      await launchUrl(Uri.parse(playStoreUrl), mode: LaunchMode.externalApplication);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -33,7 +72,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 Icon(CupertinoIcons.sun_max, color: Color(0xFFFF7F50)),
                 const SizedBox(width: 8),
                 Text(
-                  'Bonjour',
+                  'Bonjour'.tr(),
                   style: TextStyle(
                     color: Colors.grey[600],
                     fontSize: 16,
@@ -42,8 +81,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
               ],
             ),
             const SizedBox(height: 8),
-            const Text(
-              'Okba GHODBANI',
+            Text(
+              '$userName $userSurname',
               style: TextStyle(
                 fontSize: 24,
                 fontWeight: FontWeight.bold,
@@ -61,17 +100,18 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 children: [
                   ProfileMenuItem(
                     icon: Icons.person_outline,
-                    title: 'Mon profil',
+                    title: 'Mon profil'.tr(),
                     onTap: () => Navigator.push(
                       context,
                       MaterialPageRoute(
                         builder: (context) =>  PersonalProfileScreen(),
+
                       ),
                     ),
                   ),
                   ProfileMenuItem(
                     icon: Icons.location_on_outlined,
-                    title: 'Mes adresses',
+                    title: 'Mes adresses'.tr(),
                     onTap: () => Navigator.push(
                       context,
                       MaterialPageRoute(
@@ -93,15 +133,15 @@ class _ProfileScreenState extends State<ProfileScreen> {
               child: Column(
                 children: [
                   ProfileMenuItem(
-                    icon: Icons.store_outlined,
-                    title: 'Devenir partenaire',
-                    onTap: () {},
-                  ),
-                  ProfileMenuItem(
-                    icon: Icons.delivery_dining_outlined,
-                    title: 'Devenir livreur',
-                    onTap: () {},
-                  ),
+              icon: Icons.store_outlined,
+              title: 'Devenir partenaire'.tr(),
+              onTap: _openYassirApp,
+            ),
+            ProfileMenuItem(
+              icon: Icons.delivery_dining_outlined,
+              title: 'Devenir livreur'.tr(),
+              onTap: _openYassirApp,
+            ),
                 ],
               ),
             ),
@@ -117,17 +157,17 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 children: [
                   ProfileMenuItem(
                     icon: Icons.shopping_bag_outlined,
-                    title: 'Mes commandes',
+                    title: 'Mes commandes'.tr(),
                     onTap: () {},
                   ),
                   ProfileMenuItem(
                     icon: Icons.favorite_outline,
-                    title: 'Mes favoris',
+                    title: 'Mes favoris'.tr(),
                     onTap: () {},
                   ),
                   ProfileMenuItem(
                     icon: Icons.notifications_outlined,
-                    title: 'Notifications',
+                    title: 'Notifications'.tr(),
                     onTap: () => Navigator.push(
                       context,
                       MaterialPageRoute(
@@ -137,12 +177,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   ),
                   ProfileMenuItem(
                     icon: Icons.language_outlined,
-                    title: 'Langues',
+                    title: 'Langues'.tr(),
                     onTap: () {},
                   ),
                   ProfileMenuItem(
                     icon: Icons.card_giftcard_outlined,
-                    title: 'Invitez & Gagnez',
+                    title: 'Invitez & Gagnez'.tr(),
                     onTap: () {},
                   ),
                 ],
@@ -160,7 +200,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 color: Colors.red[400],
               ),
               label: Text(
-                'Se déconnecter',
+                'Se déconnecter'.tr(),
                 style: TextStyle(
                   color: Colors.red[400],
                   fontSize: 16,
