@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
+import 'package:easy_localization/easy_localization.dart';
 
 class NotificationsScreen extends StatefulWidget {
   const NotificationsScreen({Key? key}) : super(key: key);
@@ -18,7 +19,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
-        title: const Text('Notifications'),
+        title: const Text('Notifications').tr(),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back, color: Color.fromARGB(255, 240, 136, 33)),
           onPressed: () => Navigator.pop(context),
@@ -30,8 +31,8 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
         padding: const EdgeInsets.all(16),
         children: [
           _buildNotificationOption(
-            title: 'Notification Push',
-            subtitle: "Recevez les dernières offres et promotions via l'application",
+            title: 'Notification Push'.tr(),
+            subtitle: "Recevez les dernières offres et promotions via l'application".tr(),
             value: pushEnabled,
             onChanged: (value) {
               setState(() {
@@ -41,8 +42,8 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
           ),
           const SizedBox(height: 24),
           _buildNotificationOption(
-            title: 'Notifications par SMS',
-            subtitle: 'Recevez les dernières offres et promotions via SMS',
+            title: 'Notifications par SMS'.tr(),
+            subtitle: 'Recevez les dernières offres et promotions via SMS'.tr(),
             value: smsEnabled,
             onChanged: (value) {
               setState(() {
@@ -52,8 +53,8 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
           ),
           const SizedBox(height: 24),
           _buildNotificationOption(
-            title: 'Notification par email',
-            subtitle: 'Recevez les dernières offres et promotions via email',
+            title: 'Notification par email'.tr(),
+            subtitle: 'Recevez les dernières offres et promotions via email'.tr(),
             value: emailEnabled,
             onChanged: (value) {
               setState(() {

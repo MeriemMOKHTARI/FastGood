@@ -18,12 +18,12 @@ class ProfileMenuItem extends StatelessWidget {
       leading: Container(
         padding: const EdgeInsets.all(8),
         decoration: BoxDecoration(
-          color: const Color(0xFF70B9BE).withOpacity(0.1),
+          color: const Color(0xFFFF7F50).withOpacity(0.1),
           shape: BoxShape.circle,
         ),
         child: Icon(
           icon,
-          color: const Color(0xFF70B9BE),
+          color: const Color(0xFFFF7F50),
         ),
       ),
       title: Text(

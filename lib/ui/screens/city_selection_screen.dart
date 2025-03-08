@@ -16,14 +16,14 @@ class CitySelectionScreen extends StatefulWidget {
 class _CitySelectionScreenState extends State<CitySelectionScreen> {
   String? _selectedCity;
  final List<String> _algerianCities = [
-  'Adrar', 'Aïn Defla', 'Aïn Témouchent', 'Alger', 'Annaba', 'Batna', 'Béchar', 
-  'Béjaïa', 'Biskra', 'Blida', 'Bordj Bou Arreridj', 'Bouira', 'Boumerdès', 'Chlef',
-  'Constantine', 'Djelfa', 'El Bayadh', 'El Oued', 'El Tarf', 'Ghardaïa', 
-  'Guelma', 'Illizi', 'Jijel', 'Khenchela', 'Laghouat', 'Mascara', 'Médéa', 
-  'Mila', 'Mostaganem', 'Msila', 'Naâma', 'Oran', 'Ouargla', 'Oum El Bouaghi',
-  'Relizane', 'Saïda', 'Sétif', 'Sidi Bel Abbès', 'Skikda', 'Souk Ahras', 
-  'Tamanghasset', 'Tébessa', 'Tiaret', 'Tindouf', 'Tipaza', 'Tissemsilt', 
-  'Tizi Ouzou', 'Tlemcen'
+ 'adrar', 'ain_defla', 'ain_temouchent', 'alger', 'annaba', 'batna', 'bechar',
+  'bejaia', 'biskra', 'blida', 'bordj_bou_arreridj', 'bouira', 'boumerdes',
+  'chlef', 'constantine', 'djelfa', 'el_bayadh', 'el_oued', 'el_tarf', 'ghardaia',
+  'guelma', 'illizi', 'jijel', 'khenchela', 'laghouat', 'mascara', 'medea',
+  'mila', 'mostaganem', 'msila', 'naama', 'oran', 'ouargla', 'oum_el_bouaghi',
+  'relizane', 'saida', 'setif', 'sidi_bel_abbes', 'skikda', 'souk_ahras',
+  'tamanghasset', 'tebessa', 'tiaret', 'tindouf', 'tipaza', 'tissemsilt',
+  'tizi_ouzou', 'tlemcen'
 ];
   final account = Config.getAccount();
 
@@ -56,14 +56,14 @@ class _CitySelectionScreenState extends State<CitySelectionScreen> {
                 items: _algerianCities.map((String city) {
                   return DropdownMenuItem<String>(
                     value: city,
-                    child: Text(city),
+                    child:  Text('cities.$city'.tr()),
                   );
                 }).toList(),
                 onChanged: (String? newValue) {
                   setState(() {
                     _selectedCity = newValue;
                   });
-                  if (newValue != null && newValue != 'Oran') {
+                  if (newValue != null && newValue != 'oran'.tr()) {
                     _showCityAlert();
                   }
                 },
@@ -94,7 +94,7 @@ class _CitySelectionScreenState extends State<CitySelectionScreen> {
               Navigator.of(context).pop();
               setState(() {
                 // Reset the selected city to Oran after the alert
-                _selectedCity = 'Oran'; 
+                _selectedCity = 'oran'.tr(); 
               });
             },
           ),
@@ -105,7 +105,7 @@ class _CitySelectionScreenState extends State<CitySelectionScreen> {
 }
 
 void _handleCityConfirmation() {
-  if (_selectedCity == 'Oran') {
+  if (_selectedCity == 'oran'.tr()) {
     Navigator.of(context).pushReplacement(
       MaterialPageRoute(builder: (context) =>  HomePage()),
     );
