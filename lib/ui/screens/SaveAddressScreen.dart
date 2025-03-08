@@ -32,8 +32,13 @@ class _SaveAddressScreenState extends State<SaveAddressScreen> {
     super.initState();
     _getAddressFromLatLng();
     if (widget.addressToEdit != null) {
-      _selectedType = widget.addressToEdit!.icon;
-      if (_selectedType == 'location') {
+      // Set the correct type based on the icon
+      if (widget.addressToEdit!.icon == 'home') {
+        _selectedType = 'Home';
+      } else if (widget.addressToEdit!.icon == 'work') {
+        _selectedType = 'Office';
+      } else {
+        _selectedType = 'Custom';
         _customLabel = widget.addressToEdit!.name;
         _customLabelController.text = _customLabel;
       }
@@ -52,21 +57,25 @@ class _SaveAddressScreenState extends State<SaveAddressScreen> {
     setState(() => _isLoading = true);
     try {
       final mapService = MapService();
-      final String label;
-      final String address;
-      if (_selectedType == 'Custom') {
-        label = 'C';
-        address = _customLabel;
-      } else if (_selectedType == 'Home') {
-        label = 'H';
+      
+      // Determine the label and address based on the selected type
+      String label;
+      String address;
+      
+      // This is the key part - ensure correct label assignment
+      if (_selectedType == 'Home') {
+        label = 'H';  // Home label
         address = 'Domicile';
       } else if (_selectedType == 'Office') {
-        label = 'W';
+        label = 'W';  // Work label
         address = 'Bureau';
       } else {
-        label = _selectedType;
-        address = _address;
+        // Custom address
+        label = 'C';
+        address = _customLabel;
       }
+      
+      print('Saving address with type: $_selectedType, label: $label');
 
       final result = widget.addressToEdit == null
           ? await mapService.addFavoriteAddress(
@@ -87,16 +96,12 @@ class _SaveAddressScreenState extends State<SaveAddressScreen> {
           const SnackBar(content: Text('Address saved successfully')),
         );
         Navigator.pop(context, true);
-      } else if (widget.addressToEdit == null) {
-        if (result['status'] == '600') {
-          _showBottomSheet('Home address already exists');
-        } else if (result['status'] == '602') {
-          _showBottomSheet('Work address already exists');
-        } else {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text(result['message'] ?? 'Failed to save address')),
-          );
-        }
+      } else if (result['status'] == '601') {
+        // Home address already exists
+        _showAddressExistsBottomSheet('Domicile');
+      } else if (result['status'] == '602') {
+        // Work address already exists
+        _showAddressExistsBottomSheet('Bureau');
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text(result['message'] ?? 'Failed to save address')),
@@ -110,6 +115,68 @@ class _SaveAddressScreenState extends State<SaveAddressScreen> {
     } finally {
       setState(() => _isLoading = false);
     }
+  }
+
+  void _showAddressExistsBottomSheet(String addressType) {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.white,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (BuildContext context) {
+        return Container(
+          padding: EdgeInsets.all(24),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(
+                addressType == 'Domicile' ? Icons.home : Icons.business,
+                color: Color(0xFFFF7F50),
+                size: 48,
+              ),
+              SizedBox(height: 16),
+              Text(
+                'Adresse déjà existante',
+                style: TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                ),
+                textAlign: TextAlign.center,
+              ),
+              SizedBox(height: 12),
+              Text(
+                'Une adresse "$addressType" existe déjà. Vous ne pouvez avoir qu\'une seule adresse de ce type.',
+                style: TextStyle(
+                  fontSize: 16,
+                  color: Colors.grey[600],
+                ),
+                textAlign: TextAlign.center,
+              ),
+              SizedBox(height: 24),
+              ElevatedButton(
+                onPressed: () => Navigator.pop(context),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Color(0xFFFF7F50),
+                  minimumSize: Size(double.infinity, 50),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ),
+                child: Text(
+                  'Compris',
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w500,
+                    color: Colors.white,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        );
+      },
+    );
   }
 
   void _showBottomSheet(String message) {
