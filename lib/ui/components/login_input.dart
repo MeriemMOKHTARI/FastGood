@@ -41,6 +41,7 @@ class _LoginInputState extends State<LoginInput> {
   String? errorMessage;
   Key _phoneFieldKey = UniqueKey();
   String new_id = ID.unique();
+  bool _isLoading = false; // Add loading state
 
   bool _isNumericOnly(String str) {
     return RegExp(r'^[0-9]+$').hasMatch(str);
@@ -103,6 +104,12 @@ class _LoginInputState extends State<LoginInput> {
               child: Text('Oui'.tr()),
               onPressed: () async {
                 Navigator.of(context).pop(); // Close the dialog
+                
+                // Set loading state
+                setState(() {
+                  _isLoading = true;
+                });
+                
                 await storage.write(key: 'new_user_id', value: new_id);
                 final authService = AuthService();
                 String result = await authService.sendSMS(
@@ -113,6 +120,12 @@ class _LoginInputState extends State<LoginInput> {
                   account,
                   databases,
                 );
+                
+                // Reset loading state
+                setState(() {
+                  _isLoading = false;
+                });
+                
                 print("SMS send result: $result");
                 if (result == '200') {
                   // Navigate to OTP screen with name and prenom
@@ -172,6 +185,12 @@ class _LoginInputState extends State<LoginInput> {
               child: Text('Oui'.tr()),
               onPressed: () async {
                 Navigator.of(context).pop(); // Close the dialog
+                
+                // Set loading state
+                setState(() {
+                  _isLoading = true;
+                });
+                
                 final authService = AuthService();
                 print("saved the new : "+ new_id);
                 await storage.write(key: 'new_user_id', value: new_id);
@@ -183,6 +202,12 @@ class _LoginInputState extends State<LoginInput> {
                   account,
                   databases,
                 );
+                
+                // Reset loading state
+                setState(() {
+                  _isLoading = false;
+                });
+                
                 print("SMS send result: $result");
                 if (result == '200') {
                   // Navigate to OTP screen with name and prenom
@@ -234,7 +259,7 @@ class _LoginInputState extends State<LoginInput> {
               children: [
                 IconButton(
                   icon: const Icon(Icons.arrow_back),
-                  onPressed: widget.onBack,
+                  onPressed: _isLoading ? null : widget.onBack,
                 ),
                 const SizedBox(width: 8),
                 Expanded(
@@ -260,11 +285,13 @@ class _LoginInputState extends State<LoginInput> {
             CustomTextField(
               controller: nameController,
               hintText: 'Nom'.tr(),
+              // Remove the enabled parameter
             ),
             const SizedBox(height: 16),
             CustomTextField(
               controller: prenomController,
               hintText: 'Prenom'.tr(),
+              // Remove the enabled parameter
             ),
             const SizedBox(height: 16),
             Container(
@@ -275,6 +302,7 @@ class _LoginInputState extends State<LoginInput> {
               child: IntlPhoneField(
                 key: _phoneFieldKey,
                 controller: phoneController,
+                enabled: !_isLoading,
                 decoration: InputDecoration(
                   hintText: 'N° de telephone'.tr(),
                   counterText: '',
@@ -339,102 +367,133 @@ class _LoginInputState extends State<LoginInput> {
               ),
             ),
             const SizedBox(height: 24),
-           CustomButton(
-              onPressed: () async {
-                final name = nameController.text;
-                final prenom = prenomController.text;
+            _isLoading
+              ? Center(
+                  child: CircularProgressIndicator(
+                    valueColor: AlwaysStoppedAnimation<Color>(Color(0xFFFF7F50)),
+                  ),
+                )
+              : CustomButton(
+                  onPressed: () async {
+                    final name = nameController.text;
+                    final prenom = prenomController.text;
 
-                if (name.isEmpty) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: Text('Please_enter_a_valid_name'.tr()),
-                    ),
-                  );
-                } else if (prenom.isEmpty) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: Text('Please_enter_a_valid_prenom'.tr()),
-                    ),
-                  );
-                } else if (isPhoneValid == false) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: Text('Please_enter_a_valid_phone_number'.tr()),
-                    ),
-                  );
-                } else {
-                  final authService = AuthService();
-                  try {
-                    Map<String, String> result = await authService.verifyUser(
-                      name,
-                      prenom,
-                      completePhoneNumber ?? '',
-                      account,
-                      databases,
-                    );
-                    if (result['status'] == '200') {
-                      String userID = result['userID'] ?? '';
-
-                      await storage.write(key: 'new_user_id', value: userID);
-                      String smsResult = await authService.sendSMS(
-                        completePhoneNumber!,
-                        "and",
-                        "255.255.255.255",
-                        userID,
-                        account,
-                        databases,
+                    if (name.isEmpty) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text('Please_enter_a_valid_name'.tr()),
+                        ),
                       );
-                      print("tlf: $completePhoneNumber! smsResult: $smsResult");
-                      print("useeeerid: $userID");
+                    } else if (prenom.isEmpty) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text('Please_enter_a_valid_prenom'.tr()),
+                        ),
+                      );
+                    } else if (isPhoneValid == false) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text('Please_enter_a_valid_phone_number'.tr()),
+                        ),
+                      );
+                    } else {
+                      // Set loading state
+                      setState(() {
+                        _isLoading = true;
+                      });
+                      
+                      final authService = AuthService();
+                      try {
+                        Map<String, String> result = await authService.verifyUser(
+                          name,
+                          prenom,
+                          completePhoneNumber ?? '',
+                          account,
+                          databases,
+                        );
+                        
+                        if (result['status'] == '200') {
+                          String userID = result['userID'] ?? '';
 
-                      if (smsResult == '200') {
-                        widget.onOtpNavigate(
-                          nameController.text,
-                          prenomController.text,
-                          completePhoneNumber!,
-                        );
-                      } else if (smsResult == '333') {
-                        showDialog(
-                          context: context,
-                          builder: (context) => AlertDialog(
-                            title: Text('Blocked_User'.tr()),
-                            content: Text('Your_account_has_been_blocked.'.tr()),
-                            actions: [
-                              TextButton(
-                                onPressed: () => Navigator.of(context).pop(),
-                                child: Text('OK'),
+                          await storage.write(key: 'new_user_id', value: userID);
+                          String smsResult = await authService.sendSMS(
+                            completePhoneNumber!,
+                            "and",
+                            "255.255.255.255",
+                            userID,
+                            account,
+                            databases,
+                          );
+                          
+                          // Reset loading state
+                          setState(() {
+                            _isLoading = false;
+                          });
+                          
+                          print("tlf: $completePhoneNumber! smsResult: $smsResult");
+                          print("useeeerid: $userID");
+
+                          if (smsResult == '200') {
+                            widget.onOtpNavigate(
+                              nameController.text,
+                              prenomController.text,
+                              completePhoneNumber!,
+                            );
+                          } else if (smsResult == '333') {
+                            showDialog(
+                              context: context,
+                              builder: (context) => AlertDialog(
+                                title: Text('Blocked_User'.tr()),
+                                content: Text('Your_account_has_been_blocked.'.tr()),
+                                actions: [
+                                  TextButton(
+                                    onPressed: () => Navigator.of(context).pop(),
+                                    child: Text('OK'),
+                                  ),
+                                ],
                               ),
-                            ],
-                          ),
-                        );
-                      } else {
+                            );
+                          } else {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(content: Text('Erreur de connexion.Merci d\'essayer à nouveau.'.tr())),
+                            );
+                          }
+                        } else if (result['status'] == '201') {
+                          setState(() {
+                            _isLoading = false;
+                          });
+                          _showVerificationDialog();
+                        } else if (result['status'] == '202') {
+                          setState(() {
+                            _isLoading = false;
+                          });
+                          _showVerificationDialog2();
+                        } else {
+                          setState(() {
+                            _isLoading = false;
+                          });
+                          print("Unexpected result from verifyUser: $result");
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(content: Text('Erreur de connexion.Merci d\'essayer à nouveau.'.tr())),
+                          );
+                        }
+                      } catch (e) {
+                        setState(() {
+                          _isLoading = false;
+                        });
+                        print("Error during verification or SMS sending: $e");
                         ScaffoldMessenger.of(context).showSnackBar(
                           SnackBar(content: Text('Erreur de connexion.Merci d\'essayer à nouveau.'.tr())),
                         );
                       }
-                    } else if (result['status'] == '201') {
-                      _showVerificationDialog();
-                    } else if (result['status'] == '202') {
-                      _showVerificationDialog2();
-                    } else {
-                      print("Unexpected result from verifyUser: $result");
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(content: Text('Erreur de connexion.Merci d\'essayer à nouveau.'.tr())),
-                      );
                     }
-                  } catch (e) {
-                    print("Error during verification or SMS sending: $e");
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(content: Text('Erreur de connexion.Merci d\'essayer à nouveau.'.tr())),
-                    );
-                  }
-                }
-              },
-              text: 'Connexion'.tr(),
-            ),
+                  },
+                  text: 'Connexion'.tr(),
+                ),
           ],
         ),
       ),
     );
   }
 }
+

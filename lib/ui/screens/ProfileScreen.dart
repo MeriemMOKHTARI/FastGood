@@ -1,5 +1,4 @@
 import 'package:datalock/config/config.dart';
-import 'package:datalock/main.dart';
 import 'package:datalock/services/auth_service.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
@@ -11,53 +10,15 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:appwrite/appwrite.dart';
 import 'package:datalock/ui/screens/authentication_screen.dart';
-import '../../services/user_service.dart';
-import 'package:easy_localization/easy_localization.dart';
-import 'package:url_launcher/url_launcher.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({Key? key}) : super(key: key);
-
 
   @override
   _ProfileScreenState createState() => _ProfileScreenState();
 }
 
 class _ProfileScreenState extends State<ProfileScreen> {
-  String userName = "";
-  String userSurname = "";
-
-  @override
-  void initState() {
-    super.initState();
-    _loadUserInfo();
-  }
-
-  Future<void> _loadUserInfo() async {
-    final userService = UserService(); // Créer une instance
-final user = await userService.getUserProfile();
-   if (user != null) {
-      setState(() {
-        userName = user['user_name'] ?? "";
-        userSurname = user['family_name'] ?? ""; // Vérifie le bon nom de clé
-      });
-    }
-  }
-
-   Future<void> _openYassirApp() async {
-    const appScheme = 'yassirrider://';
-    const playStoreUrl = 'https://play.google.com/store/apps/details?id=com.yatechnologies.yassir_rider&pcampaignid=web_share';
-    
-    try {
-      final bool launched = await launchUrl(Uri.parse(appScheme), mode: LaunchMode.externalApplication);
-      if (!launched) {
-        await launchUrl(Uri.parse(playStoreUrl), mode: LaunchMode.externalApplication);
-      }
-    } catch (e) {
-      await launchUrl(Uri.parse(playStoreUrl), mode: LaunchMode.externalApplication);
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -72,7 +33,7 @@ final user = await userService.getUserProfile();
                 Icon(CupertinoIcons.sun_max, color: Color(0xFFFF7F50)),
                 const SizedBox(width: 8),
                 Text(
-                  'Bonjour'.tr(),
+                  'Bonjour',
                   style: TextStyle(
                     color: Colors.grey[600],
                     fontSize: 16,
@@ -81,8 +42,8 @@ final user = await userService.getUserProfile();
               ],
             ),
             const SizedBox(height: 8),
-            Text(
-              '$userName $userSurname',
+            const Text(
+              'Okba GHODBANI',
               style: TextStyle(
                 fontSize: 24,
                 fontWeight: FontWeight.bold,
@@ -100,18 +61,17 @@ final user = await userService.getUserProfile();
                 children: [
                   ProfileMenuItem(
                     icon: Icons.person_outline,
-                    title: 'Mon profil'.tr(),
+                    title: 'Mon profil',
                     onTap: () => Navigator.push(
                       context,
                       MaterialPageRoute(
                         builder: (context) =>  PersonalProfileScreen(),
-
                       ),
                     ),
                   ),
                   ProfileMenuItem(
                     icon: Icons.location_on_outlined,
-                    title: 'Mes adresses'.tr(),
+                    title: 'Mes adresses',
                     onTap: () => Navigator.push(
                       context,
                       MaterialPageRoute(
@@ -133,15 +93,15 @@ final user = await userService.getUserProfile();
               child: Column(
                 children: [
                   ProfileMenuItem(
-              icon: Icons.store_outlined,
-              title: 'Devenir partenaire'.tr(),
-              onTap: _openYassirApp,
-            ),
-            ProfileMenuItem(
-              icon: Icons.delivery_dining_outlined,
-              title: 'Devenir livreur'.tr(),
-              onTap: _openYassirApp,
-            ),
+                    icon: Icons.store_outlined,
+                    title: 'Devenir partenaire',
+                    onTap: () {},
+                  ),
+                  ProfileMenuItem(
+                    icon: Icons.delivery_dining_outlined,
+                    title: 'Devenir livreur',
+                    onTap: () {},
+                  ),
                 ],
               ),
             ),
@@ -157,17 +117,17 @@ final user = await userService.getUserProfile();
                 children: [
                   ProfileMenuItem(
                     icon: Icons.shopping_bag_outlined,
-                    title: 'Mes commandes'.tr(),
+                    title: 'Mes commandes',
                     onTap: () {},
                   ),
                   ProfileMenuItem(
                     icon: Icons.favorite_outline,
-                    title: 'Mes favoris'.tr(),
+                    title: 'Mes favoris',
                     onTap: () {},
                   ),
                   ProfileMenuItem(
                     icon: Icons.notifications_outlined,
-                    title: 'Notifications'.tr(),
+                    title: 'Notifications',
                     onTap: () => Navigator.push(
                       context,
                       MaterialPageRoute(
@@ -177,12 +137,12 @@ final user = await userService.getUserProfile();
                   ),
                   ProfileMenuItem(
                     icon: Icons.language_outlined,
-                    title: 'Langues'.tr(),
+                    title: 'Langues',
                     onTap: () {},
                   ),
                   ProfileMenuItem(
                     icon: Icons.card_giftcard_outlined,
-                    title: 'Invitez & Gagnez'.tr(),
+                    title: 'Invitez & Gagnez',
                     onTap: () {},
                   ),
                 ],
@@ -200,7 +160,7 @@ final user = await userService.getUserProfile();
                 color: Colors.red[400],
               ),
               label: Text(
-                'Se déconnecter'.tr(),
+                'Se déconnecter',
                 style: TextStyle(
                   color: Colors.red[400],
                   fontSize: 16,
@@ -244,76 +204,96 @@ final user = await userService.getUserProfile();
     final storage = FlutterSecureStorage();
     final sessionId = await storage.read(key: 'session_id');
 
-    if (sessionId != null) {
-      // Show loading indicator
+    // Store the client configuration outside the try block
+    final client = Client()
+        .setEndpoint(Config.appwriteEndpoint)
+        .setProject(Config.appwriteProjectId)
+        .setSelfSigned(status: true);
+
+    // Show loading indicator
+    BuildContext? dialogContext;
+    if (context.mounted) {
       showDialog(
         context: context,
         barrierDismissible: false,
         builder: (BuildContext context) {
+          dialogContext = context;
           return Center(
-            child: CircularProgressIndicator(),
+            child: CircularProgressIndicator(
+              valueColor: AlwaysStoppedAnimation<Color>(Color(0xFFFF7F50)),
+            ),
           );
         },
       );
+    }
 
-      try {
-        final authService = AuthService();
-        final client = Client()
-            .setEndpoint(Config.appwriteEndpoint)
-            .setProject(Config.appwriteProjectId)
-            .setSelfSigned(status: true);
-
-        final account = Account(client);
-        final databases = Databases(client);
-
-        final result = await authService.logoutUser(
-          sessionId,
-          account,
-          databases,
-        );
-
-        // Close loading indicator
-        Navigator.of(context).pop();
-
-        if (result['status'] == '200') {
-          // Clear all stored data
-          await _clearUserData();
-
-          // Navigate to authentication screen
-          Navigator.of(context).pushAndRemoveUntil(
-            MaterialPageRoute(
-              builder: (context) => AuthenticationScreen(
-                account: account,
-                databases: databases,
-                functions: Functions(client),
-              ),
-            ),
-            (route) => false, // Remove all previous routes
-          );
-        } else {
-          // Show error message
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Erreur lors de la déconnexion. Veuillez réessayer.')),
-          );
+    try {
+      if (sessionId == null) {
+        print('No session ID found, proceeding with local logout');
+        // Clear all local data
+        await _clearLocalData();
+        
+        // Dismiss loading indicator if it's showing
+        if (dialogContext != null && Navigator.canPop(dialogContext!)) {
+          Navigator.pop(dialogContext!);
         }
-      } catch (e) {
-        // Close loading indicator
-        Navigator.of(context).pop();
-
-        // Show error message
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Une erreur est survenue: $e')),
-        );
+        
+        // Navigate to login screen
+        _navigateToLogin(client, context);
+        return;
       }
-    } else {
-      // No session ID found, just clear data and navigate to login
-      await _clearUserData();
 
-      final client = Client()
-          .setEndpoint(Config.appwriteEndpoint)
-          .setProject(Config.appwriteProjectId)
-          .setSelfSigned(status: true);
+      final authService = AuthService();
+      final result = await authService.logoutUser(sessionId);
+      print('Logout result: $result');
 
+      // Clear local data regardless of server response
+      await _clearLocalData();
+      
+      // Dismiss loading indicator if it's showing
+      if (dialogContext != null && Navigator.canPop(dialogContext!)) {
+        Navigator.pop(dialogContext!);
+      }
+      
+      // Navigate to login screen
+      _navigateToLogin(client, context);
+    } catch (e) {
+      print('Error during logout: $e');
+      
+      // Clear local data as fallback
+      await _clearLocalData();
+      
+      // Dismiss loading indicator if it's showing
+      if (dialogContext != null && Navigator.canPop(dialogContext!)) {
+        Navigator.pop(dialogContext!);
+      }
+      
+      // Navigate to login screen
+      _navigateToLogin(client, context);
+    }
+  }
+
+  Future<void> _clearLocalData() async {
+    try {
+      final storage = FlutterSecureStorage();
+      await storage.deleteAll();
+
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.remove('cached_user_id');
+      
+      print('Local data cleared successfully');
+    } catch (e) {
+      print('Error clearing local data: $e');
+    }
+  }
+
+  void _navigateToLogin(Client client, BuildContext context) {
+    if (!context.mounted) {
+      print('Context is not mounted, cannot navigate');
+      return;
+    }
+    
+    try {
       Navigator.of(context).pushAndRemoveUntil(
         MaterialPageRoute(
           builder: (context) => AuthenticationScreen(
@@ -324,20 +304,9 @@ final user = await userService.getUserProfile();
         ),
         (route) => false,
       );
+    } catch (e) {
+      print('Error navigating to login screen: $e');
     }
-  }
-
-  Future<void> _clearUserData() async {
-    // Clear secure storage
-    final storage = FlutterSecureStorage();
-    await storage.deleteAll();
-
-    // Clear shared preferences
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.remove('cached_user_id');
-    // You can add more keys to remove if needed
-
-    print('User data cleared successfully');
   }
 }
 

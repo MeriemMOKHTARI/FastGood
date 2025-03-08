@@ -39,6 +39,7 @@ class _PhoneInputState extends flutter.State<PhoneInput> {
   final FlutterSecureStorage storage = FlutterSecureStorage();
   String? ipAddress;
   bool isOtpScreen = false;
+  bool _isLoading = false; // Add loading state
 
   String entry_id = ID.unique();
   final account = Config.getAccount();
@@ -129,119 +130,135 @@ class _PhoneInputState extends flutter.State<PhoneInput> {
     );
   }
 
-    Future<void> _cacheUserId(String userId) async {
-  final prefs = await SharedPreferences.getInstance();
-  await prefs.setString('cached_user_id', userId);
-  print("User ID cached successfully: $userId");
-}
+  Future<void> _cacheUserId(String userId) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString('cached_user_id', userId);
+    print("User ID cached successfully: $userId");
+  }
 
-void _sendSMS() async {
-  final authService = AuthService();
+  void _sendSMS() async {
+    // Set loading state
+    setState(() {
+      _isLoading = true;
+    });
+    
+    final authService = AuthService();
 
-  try {
-    if (completePhoneNumber == null || completePhoneNumber!.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Please enter a valid phone number.'.tr())),
-      );
-      return;
-    }
-
-    Map<String, String> verifyResult = await authService.verifyUserExistence(completePhoneNumber!);
-    print("numero: " + completePhoneNumber!);
-    print("userID: " + verifyResult['userID']!);
-
-    switch (verifyResult['status']) {
-      case '200':
-        // User exists, show popup and redirect to login screen
-        print('User already exists, redirecting to login screen');
-        showDialog(
-          context: context,
-          builder: (BuildContext context) {
-            return AlertDialog(
-              title: Text('Existing_Account'.tr()),
-              content: Text('You_already_have_an_account._Please_log_in.'.tr()),
-              actions: <Widget>[
-                TextButton(
-                  child: Text('OK'.tr()),
-                  onPressed: () {
-                    Navigator.of(context).pop(); // Close the dialog
-                    widget.onLoginTap(); // Redirect to login screen
-                  },
-                ),
-              ],
-            );
-          },
+    try {
+      if (completePhoneNumber == null || completePhoneNumber!.isEmpty) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Please enter a valid phone number.'.tr())),
         );
-        break;
-      case '333':
-        // User doesn't exist, proceed with SMS sending
-        String userID = verifyResult['userID']!;
-        String result = await authService.sendSMS(
-          completePhoneNumber!,
-          "and",
-          "255.255.255.255",
-          userID,
-          account,
-          databases,
-        );
+        setState(() {
+          _isLoading = false;
+        });
+        return;
+      }
 
-        print(completePhoneNumber! + " " + "and" + " " + ("255.255.255.255") + " " + userID);
-        if (result == '200') {
-          print('SMS sent successfully, navigating to OTP screen...');
-          print("send sms succ userID que je veux cacher et passer: " + userID);
-          await _cacheUserId(userID); // Cache the user ID
-          widget.onSubmit(userID, completePhoneNumber!, result, userID);
-        } else if (result == '333') {
-          print('User is blocked');
+      Map<String, String> verifyResult = await authService.verifyUserExistence(completePhoneNumber!);
+      print("numero: " + completePhoneNumber!);
+      print("userID: " + verifyResult['userID']!);
+
+      switch (verifyResult['status']) {
+        case '200':
+          // User exists, show popup and redirect to login screen
+          setState(() {
+            _isLoading = false;
+          });
+          print('User already exists, redirecting to login screen');
           showDialog(
             context: context,
-            builder: (context) {
+            builder: (BuildContext context) {
               return AlertDialog(
-                title: Text('Blocked_User'.tr()),
-                content: Text('Your_account_has_been_blocked.'.tr()),
-                actions: [
+                title: Text('Existing_Account'.tr()),
+                content: Text('You_already_have_an_account._Please_log_in.'.tr()),
+                actions: <Widget>[
                   TextButton(
-                    onPressed: () => Navigator.of(context).pop(),
-                    child: Text('OK'),
+                    child: Text('OK'.tr()),
+                    onPressed: () {
+                      Navigator.of(context).pop(); // Close the dialog
+                      widget.onLoginTap(); // Redirect to login screen
+                    },
                   ),
                 ],
               );
             },
           );
-        } else {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Failed to send SMS. Please try again.'.tr())),
+          break;
+        case '333':
+          // User doesn't exist, proceed with SMS sending
+          String userID = verifyResult['userID']!;
+          String result = await authService.sendSMS(
+            completePhoneNumber!,
+            "and",
+            "255.255.255.255",
+            userID,
+            account,
+            databases,
           );
-        }
-        break;
-      case '400':
-        // Missing required fields
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Missing required information. Please try again.'.tr())),
-        );
-        break;
-      default:
-        // Error occurred
-        String errorMessage = verifyResult['message'] ?? 'An unknown error occurred.';
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('$errorMessage Please try again.'.tr())),
-        );
+
+          print(completePhoneNumber! + " " + "and" + " " + ("255.255.255.255") + " " + userID);
+          setState(() {
+            _isLoading = false;
+          });
+          
+          if (result == '200') {
+            print('SMS sent successfully, navigating to OTP screen...');
+            print("send sms succ userID que je veux cacher et passer: " + userID);
+            await _cacheUserId(userID); // Cache the user ID
+            widget.onSubmit(userID, completePhoneNumber!, result, userID);
+          } else if (result == '333') {
+            print('User is blocked');
+            showDialog(
+              context: context,
+              builder: (context) {
+                return AlertDialog(
+                  title: Text('Blocked_User'.tr()),
+                  content: Text('Your_account_has_been_blocked.'.tr()),
+                  actions: [
+                    TextButton(
+                      onPressed: () => Navigator.of(context).pop(),
+                      child: Text('OK'),
+                    ),
+                  ],
+                );
+              },
+            );
+          } else {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text('Failed to send SMS. Please try again.'.tr())),
+            );
+          }
+          break;
+        case '400':
+          // Missing required fields
+          setState(() {
+            _isLoading = false;
+          });
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Missing required information. Please try again.'.tr())),
+          );
+          break;
+        default:
+          // Error occurred
+          setState(() {
+            _isLoading = false;
+          });
+          String errorMessage = verifyResult['message'] ?? 'An unknown error occurred.';
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('$errorMessage Please try again.'.tr())),
+          );
+      }
+    } catch (e) {
+      setState(() {
+        _isLoading = false;
+      });
+      print('Error in _sendSMS: $e');
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('An unexpected error occurred. Please try again.'.tr())),
+      );
     }
-  } catch (e) {
-    print('Error in _sendSMS: $e');
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('An unexpected error occurred. Please try again.'.tr())),
-    );
   }
-}
-
-
-
-
-
-
-
-    
 
   void _showConfirmationDialog() {
     final String number = completePhoneNumber ?? '';
@@ -309,7 +326,7 @@ void _sendSMS() async {
               ),
             ),
             flutter.SizedBox(height: 16),
-Container(
+            Container(
               decoration: BoxDecoration(
                 color: Colors.white,
                 borderRadius: BorderRadius.circular(12),
@@ -398,14 +415,20 @@ Container(
               ),
             ),
             flutter.SizedBox(height: 24),
-            CustomButton(
-              onPressed: isPhoneValid ? _showConfirmationDialog : null,
-              text: 'login'.tr(),
-            ),
+            _isLoading
+              ? Center(
+                  child: CircularProgressIndicator(
+                    valueColor: AlwaysStoppedAnimation<Color>(Color(0xFFFF7F50)),
+                  ),
+                )
+              : CustomButton(
+                  onPressed: isPhoneValid ? _showConfirmationDialog : null,
+                  text: 'login'.tr(),
+                ),
             flutter.SizedBox(height: 16),
             flutter.Center(
               child: flutter.GestureDetector(
-                onTap: widget.onLoginTap,
+                onTap: _isLoading ? null : widget.onLoginTap,
                 child: flutter.RichText(
                   text: flutter.TextSpan(
                     style: flutter.TextStyle(
@@ -418,7 +441,9 @@ Container(
                         text: 'connectez-vous'.tr(),
                         style: flutter.TextStyle(
                           decoration: flutter.TextDecoration.underline,
-                          color: flutter.Theme.of(context).scaffoldBackgroundColor,
+                          color: _isLoading 
+                            ? Colors.grey 
+                            : flutter.Theme.of(context).scaffoldBackgroundColor,
                         ),
                       ),
                     ],
