@@ -35,26 +35,14 @@ Future<Map<String, dynamic>> addFavoriteAddress({
         return {'status': '400', 'message': 'User ID not found'};
       }
 
-      // Update the label conversion logic
-      String labelChar;
-      switch (label.toLowerCase()) {
-        case 'home':
-          labelChar = 'H';
-          break;
-        case 'office':
-          labelChar = 'W';  
-          break;
-        default:
-          labelChar = 'C';
-      }
-
-      print('Adding address - Label: $labelChar, UserId: $userId');
+      // The label should already be correctly set by the caller
+      print('Adding address - Label: $label, UserId: $userId, Address: $address');
 
       Execution result = await functions.createExecution(
         functionId: "manageFavoriteAddresses",
         body: json.encode({
           "user_id": userId,
-          "label": labelChar,
+          "label": label,
           "address": address,
           "latitude": latitude,
           "longitude": longitude,
@@ -74,9 +62,9 @@ Future<Map<String, dynamic>> addFavoriteAddress({
             'status': '200',
             'data': responseBody['data']
           };
-        } else if (responseBody['status'] == '600') {
+        } else if (responseBody['status'] == '601') {
           return {
-            'status': '600',
+            'status': '601',
             'message': 'Home address already exists'
           };
         } else if (responseBody['status'] == '602') {
@@ -243,3 +231,4 @@ Future<Map<String, dynamic>> getFavoriteAddresses(
 
 
 }
+
