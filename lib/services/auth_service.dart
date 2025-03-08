@@ -118,6 +118,7 @@ class AuthService {
   }
 
 
+
   void startCountdown(int seconds, Function(String) updateTime) {
     Timer.periodic(const Duration(seconds: 1), (timer) {
       if (seconds > 0) {
@@ -286,45 +287,82 @@ class AuthService {
   }
 
 
-Future<Map<String, String>> logoutUser(String sessionsID,
-      Account account, Databases databases) async {
+Future<Map<String, String>> logoutUser(String sessionId) async {
     Client client = Client()
         .setEndpoint(Config.appwriteEndpoint)
         .setProject(Config.appwriteProjectId)
         .setSelfSigned(status: true);
     Functions functions = Functions(client);
+
     try {
+      print('Attempting to logout session: $sessionId');
+
       Execution result = await functions.createExecution(
         functionId: "sessionManagement",
         body: json.encode({
-          "sessionID": sessionsID,
+          "sessionID": sessionId,
         }),
         method: ExecutionMethod.dELETE,
       );
+
       if (result.status == 'completed') {
         final responseBody = json.decode(result.responseBody);
-        print(responseBody);
+        print('Logout response: $responseBody');
+
         if (responseBody['status'] == '200') {
+          // Clear all stored session data
+          await _clearSessionData();
           return {
             'status': '200',
+            'message': 'Logged out successfully'
           };
         } else if (responseBody['status'] == '400') {
           return {
             'status': '400',
+            'message': 'Missing session ID'
           };
         } else {
-          return {'status':'ERR'};
+          return {
+            'status': 'ERR',
+            'message': 'Database error'
+          };
         }
       } else {
         print('Function execution failed: ${result.status}');
-        return {'status':'ERR'};
+        return {
+          'status': 'ERR',
+          'message': 'Function execution failed'
+        };
       }
     } catch (e) {
-      // Handle error
-      print('Error : $e');
-      return {'status':'ERR'};
+      print('Error in logoutUser: $e');
+      return {
+        'status': 'ERR',
+        'message': e.toString()
+      };
     }
   }
+
+  Future<void> _clearSessionData() async {
+    try {
+      // Clear secure storage
+      await storage.delete(key: 'session_id');
+      await storage.delete(key: 'user_id');
+      await storage.delete(key: 'phone_number');
+      await storage.delete(key: 'new_user_id');
+
+      // Clear shared preferences
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.remove('cached_user_id');
+      await prefs.remove('locale'); // Optional: keep language setting
+
+      print('Session data cleared successfully');
+    } catch (e) {
+      print('Error clearing session data: $e');
+      throw e; // Re-throw to handle in calling function
+    }
+  }
+
 
 // Update the verifyUserExistence method to ensure consistent caching
 Future<Map<String, String>> verifyUserExistence(String phoneNumber) async {

@@ -333,7 +333,7 @@ Future<void> _showDeleteConfirmation(BuildContext context, String documentId) as
         ),
       ),
       body: _isLoading
-          ? const Center(child: CircularProgressIndicator(color: Colors.green))
+          ? const Center(child: CircularProgressIndicator(color: Color(0xFFFF7F50)))
           : Column(
               children: [
                 Expanded(

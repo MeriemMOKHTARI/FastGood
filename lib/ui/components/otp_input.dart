@@ -44,13 +44,14 @@ class _OtpInputState extends flutter.State<OtpInput> {
   final List<TextEditingController> otpControllers =
       List.generate(4, (index) => TextEditingController());
   String remainingTime = '';
-    final List<FocusNode> focusNodes = List.generate(4, (index) => FocusNode());
+  final List<FocusNode> focusNodes = List.generate(4, (index) => FocusNode());
+  bool _isLoading = false; // Add loading state
 
   String? ipAddress;
   final account = Config.getAccount();
   final databases = Config.getDatabases();
 
-String _cachedUserId = '';
+  String _cachedUserId = '';
   String getPlatform() {
     if (kIsWeb) {
       return 'web';
@@ -71,39 +72,39 @@ String _cachedUserId = '';
     _loadCachedUserId();
   }
 
- Future<void> _loadCachedUserId() async {
-  final prefs = await SharedPreferences.getInstance();
-  setState(() {
-    _cachedUserId = (prefs.getString('cached_user_id') ?? '');
-  });
-  
-  if (_cachedUserId.isEmpty) {
-    print("Attention : L'ID utilisateur mis en cache est vide");
-    // Try to recover the ID from another source if possible
-    _recoverUserId();
-  } else {
-    print("User ID loaded from cache: $_cachedUserId");
-  }
-}
-
-// Add a recovery method to try getting the ID from other storage
-Future<void> _recoverUserId() async {
-  final storage = FlutterSecureStorage();
-  final userId = await storage.read(key: 'user_id') ?? 
-                 await storage.read(key: 'new_user_id');
-  
-  if (userId != null && userId.isNotEmpty) {
-    print("Recovered user ID from secure storage: $userId");
-    // Save it to SharedPreferences for future use
+  Future<void> _loadCachedUserId() async {
     final prefs = await SharedPreferences.getInstance();
-    await prefs.setString('cached_user_id', userId);
-    
     setState(() {
-      _cachedUserId = userId;
+      _cachedUserId = (prefs.getString('cached_user_id') ?? '');
     });
+    
+    if (_cachedUserId.isEmpty) {
+      print("Attention : L'ID utilisateur mis en cache est vide");
+      // Try to recover the ID from another source if possible
+      _recoverUserId();
+    } else {
+      print("User ID loaded from cache: $_cachedUserId");
+    }
   }
-}
- 
+
+  // Add a recovery method to try getting the ID from other storage
+  Future<void> _recoverUserId() async {
+    final storage = FlutterSecureStorage();
+    final userId = await storage.read(key: 'user_id') ?? 
+                  await storage.read(key: 'new_user_id');
+    
+    if (userId != null && userId.isNotEmpty) {
+      print("Recovered user ID from secure storage: $userId");
+      // Save it to SharedPreferences for future use
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setString('cached_user_id', userId);
+      
+      setState(() {
+        _cachedUserId = userId;
+      });
+    }
+  }
+  
 
   @override
   void dispose() {
@@ -165,6 +166,11 @@ Future<void> _recoverUserId() async {
   }
 
   Future<void> resendOTP() async {
+    // Set loading state
+    setState(() {
+      _isLoading = true;
+    });
+    
     final authService = AuthService();
     print('Resending OTP to: ${widget.phoneNumber}');
 
@@ -176,6 +182,11 @@ Future<void> _recoverUserId() async {
       account,
       databases,
     );
+
+    // Reset loading state
+    setState(() {
+      _isLoading = false;
+    });
 
     if (result == '200') {
       print('SMS resent successfully');
@@ -215,7 +226,7 @@ Future<void> _recoverUserId() async {
               children: [
                 flutter.IconButton(
                   icon: Icon(Icons.arrow_back),
-                  onPressed: widget.onBack,
+                  onPressed: _isLoading ? null : widget.onBack,
                 ),
                 SizedBox(width: 8),
                 Expanded(
@@ -238,7 +249,7 @@ Future<void> _recoverUserId() async {
               ),
             ),
             SizedBox(height: 16),
-             flutter.Row(
+            flutter.Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: List.generate(
                 otpControllers.length,
@@ -246,99 +257,114 @@ Future<void> _recoverUserId() async {
                   width: 60,
                   height: 60,
                   margin: EdgeInsets.symmetric(horizontal: 4),
-                  child:KeyboardListener(
-  focusNode: FocusNode(), // Pour intercepter les événements clavier
-  onKeyEvent: (KeyEvent event) {
-    if (event is KeyDownEvent &&
-        event.logicalKey == LogicalKeyboardKey.backspace) {
-      if (index > 0) {
-        // Effacer le contenu de la case actuelle
-        otpControllers[index].clear();
-        // Reculer immédiatement au champ précédent
-        focusNodes[index - 1].requestFocus();
-      }
-    }
-  },
-  child: TextField(
-    controller: otpControllers[index],
-    focusNode: focusNodes[index],
-    keyboardType: TextInputType.number,
-    textAlign: TextAlign.center,
-    maxLength: 1,
-    decoration: InputDecoration(
-      counterText: "",
-      border: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(8),
-      ),
-    ),
-    inputFormatters: [
-      FilteringTextInputFormatter.digitsOnly,
-      LengthLimitingTextInputFormatter(1),
-    ],
-    onChanged: (value) {
-      if (value.length == 1 && index < otpControllers.length - 1) {
-        // Avancer automatiquement au champ suivant
-        focusNodes[index + 1].requestFocus();
-      }
-    },
-    onTap: () {
-      otpControllers[index].selection = TextSelection.fromPosition(
-        TextPosition(offset: otpControllers[index].text.length),
-      );
-    },
-  ),
-),
+                  child: KeyboardListener(
+                    focusNode: FocusNode(), // Pour intercepter les événements clavier
+                    onKeyEvent: (KeyEvent event) {
+                      if (event is KeyDownEvent &&
+                          event.logicalKey == LogicalKeyboardKey.backspace) {
+                        if (index > 0) {
+                          // Effacer le contenu de la case actuelle
+                          otpControllers[index].clear();
+                          // Reculer immédiatement au champ précédent
+                          focusNodes[index - 1].requestFocus();
+                        }
+                      }
+                    },
+                    child: TextField(
+                      controller: otpControllers[index],
+                      focusNode: focusNodes[index],
+                      keyboardType: TextInputType.number,
+                      textAlign: TextAlign.center,
+                      maxLength: 1,
+                      enabled: !_isLoading,
+                      decoration: InputDecoration(
+                        counterText: "",
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                      ),
+                      inputFormatters: [
+                        FilteringTextInputFormatter.digitsOnly,
+                        LengthLimitingTextInputFormatter(1),
+                      ],
+                      onChanged: (value) {
+                        if (value.length == 1 && index < otpControllers.length - 1) {
+                          // Avancer automatiquement au champ suivant
+                          focusNodes[index + 1].requestFocus();
+                        }
+                      },
+                      onTap: () {
+                        otpControllers[index].selection = TextSelection.fromPosition(
+                          TextPosition(offset: otpControllers[index].text.length),
+                        );
+                      },
+                    ),
+                  ),
+                ),
               ),
             ),
-          ),
             SizedBox(height: 24),
-       flutter.CustomButton(
-  onPressed: () async {
-    if (_cachedUserId.isEmpty) {
-      // Try to recover the ID one more time
-      await _recoverUserId();
-      
-      if (_cachedUserId.isEmpty) {
-        print("Erreur : L'ID utilisateur mis en cache est toujours vide");
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Une erreur est survenue. Veuillez réessayer.'.tr())),
-        );
-        return;
-      }
-    }
-    
-    final authService = AuthService();
-    String result = await authService.VerifyOTP(
-      widget.phoneNumber,
-      otpControllers.map((controller) => controller.text).join(''),
-      _cachedUserId, // Now this won't be empty
-      account,
-      databases,
-    );
-    
-    print("Résultat de la vérification : $result");
-    
-    if (result == '200') {
-      await widget.onSubmit(_cachedUserId, widget.phoneNumber, result, widget.name, widget.prenom);
-    } else if (result == '400') {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('please_provide_a_valid_OTP'.tr())),
-      );
-    } else if (result == '333') {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('incorrect_OTP'.tr())),
-      );
-    } else if (result == 'ERR') {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Erreur de connexion. Merci d\'essayer à nouveau.'.tr())),
-      );
-    }
-  },
-  text: 'Continue'.tr(),
-),
+            _isLoading
+              ? Center(
+                  child: CircularProgressIndicator(
+                    valueColor: AlwaysStoppedAnimation<Color>(Color(0xFFFF7F50)),
+                  ),
+                )
+              : flutter.CustomButton(
+                  onPressed: () async {
+                    if (_cachedUserId.isEmpty) {
+                      // Try to recover the ID one more time
+                      await _recoverUserId();
+                      
+                      if (_cachedUserId.isEmpty) {
+                        print("Erreur : L'ID utilisateur mis en cache est toujours vide");
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(content: Text('Une erreur est survenue. Veuillez réessayer.'.tr())),
+                        );
+                        return;
+                      }
+                    }
+                    
+                    // Set loading state
+                    setState(() {
+                      _isLoading = true;
+                    });
+                    
+                    final authService = AuthService();
+                    String result = await authService.VerifyOTP(
+                      widget.phoneNumber,
+                      otpControllers.map((controller) => controller.text).join(''),
+                      _cachedUserId, // Now this won't be empty
+                      account,
+                      databases,
+                    );
+                    
+                    // Reset loading state
+                    setState(() {
+                      _isLoading = false;
+                    });
+                    
+                    print("Résultat de la vérification : $result");
+                    
+                    if (result == '200') {
+                      await widget.onSubmit(_cachedUserId, widget.phoneNumber, result, widget.name, widget.prenom);
+                    } else if (result == '400') {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(content: Text('please_provide_a_valid_OTP'.tr())),
+                      );
+                    } else if (result == '333') {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(content: Text('incorrect_OTP'.tr())),
+                      );
+                    } else if (result == 'ERR') {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(content: Text('Erreur de connexion. Merci d\'essayer à nouveau.'.tr())),
+                      );
+                    }
+                  },
+                  text: 'Continue'.tr(),
+                ),
             
-            
-// ccccccc
             SizedBox(height: 16),
             Center(
               child: Row(
@@ -352,13 +378,13 @@ Future<void> _recoverUserId() async {
                     ),
                   ),
                   TextButton(
-                    onPressed: remainingTime == '00:00' ? resendOTP : null,
+                    onPressed: (_isLoading || remainingTime != '00:00') ? null : resendOTP,
                     child: Text(
                       'resend'.tr(),
                       style: TextStyle(
-                        color: remainingTime == '00:00'
-                            ? Color.fromARGB(255, 206, 122, 11)
-                            : Colors.grey,
+                        color: (_isLoading || remainingTime != '00:00')
+                            ? Colors.grey
+                            : Color.fromARGB(255, 206, 122, 11),
                         decoration: TextDecoration.underline,
                         fontWeight: FontWeight.w600,
                         fontSize: 14,

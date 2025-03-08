@@ -102,23 +102,45 @@ class _SplashScreenState extends State<SplashScreen> {
   final account = Config.getAccount();
 
 
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: const Color.fromARGB(255, 245, 205, 191),
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Config.buildLogo(),
-            const SizedBox(height: 20),
-            const CircularProgressIndicator(
-              valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
-            ),
-          ],
+   @override
+Widget build(BuildContext context) {
+  return Scaffold(
+    body: Stack(
+      fit: StackFit.expand,
+      children: [
+        Image.asset(
+          'assets/images/onboard.png',
+          fit: BoxFit.cover, // Permet de couvrir tout l'écran
+        ),
+        Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+               Container(
+        width: 180,
+        height: 180,
+        decoration: const BoxDecoration(
+          shape: BoxShape.circle,
+        ),
+        child: ClipOval( 
+          child: Image.asset(
+            'assets/images/logo.png', 
+            fit: BoxFit.cover,        
+          ),
         ),
       ),
-    );
-  }
+              const SizedBox(height: 20),
+              const CircularProgressIndicator(
+                valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+              ),
+            ],
+          ),
+        ),
+      ],
+    ),
+  );
 }
+
+}
+
 

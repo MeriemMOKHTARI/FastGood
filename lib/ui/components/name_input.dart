@@ -42,6 +42,7 @@ class _NameInputState extends State<NameInput> {
   final TextEditingController nameController = TextEditingController();
   final TextEditingController prenomController = TextEditingController();
   final TextEditingController emailController = TextEditingController();
+  bool _isLoading = false; // Add loading state
 
   final FlutterSecureStorage storage = FlutterSecureStorage();
   final account = Config.getAccount();
@@ -115,7 +116,7 @@ class _NameInputState extends State<NameInput> {
               children: [
                 IconButton(
                   icon: const Icon(Icons.arrow_back),
-                  onPressed: widget.onBack,
+                  onPressed: _isLoading ? null : widget.onBack,
                 ),
                 const SizedBox(width: 8),
                 Expanded(
@@ -142,90 +143,117 @@ class _NameInputState extends State<NameInput> {
             CustomTextField(
               controller: nameController,
               hintText: 'name'.tr(),
+              // Remove the enabled parameter
             ),
             const SizedBox(height: 8),
             CustomTextField(
               controller: prenomController,
               hintText: 'forename'.tr(),
+              // Remove the enabled parameter
             ),
             const SizedBox(height: 8),
             CustomTextField(
               controller: emailController,
               hintText: 'email'.tr(),
+              // Remove the enabled parameter
             ),
             const SizedBox(height: 24),
-            CustomButton(
-              onPressed: () async {
-                final email = emailController.text;
-                final name = nameController.text;
-                final prenom = prenomController.text;
+            _isLoading
+              ? Center(
+                  child: CircularProgressIndicator(
+                    valueColor: AlwaysStoppedAnimation<Color>(Color(0xFFFF7F50)),
+                  ),
+                )
+              : CustomButton(
+                  onPressed: () async {
+                    final email = emailController.text;
+                    final name = nameController.text;
+                    final prenom = prenomController.text;
 
-                final emailRegExp = RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$');
-                if (name.isEmpty) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: Text('Please_enter_a_valid_name'.tr()),
-                    ),
-                  );
-                } else if (prenom.isEmpty) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: Text('Please_enter_a_valid_prenom'.tr()),
-                    ),
-                  );
-                } else if (email.isEmpty || !emailRegExp.hasMatch(email)) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: Text('Please_enter_a_valid_email'.tr()),
-                    ),
-                  );
-                } else {
-                  final authService = AuthService();
-                  print("avant man3yto les parametres li dthom save user infos " + widget.phoneNumber + "and" + "255.255.255.255" + name + prenom + email + widget.entry_id);
-                  String result = await authService.saveUserInfos(
-                      widget.phoneNumber,
-                      getPlatform(),
-                      "255.255.255.255",
-                      widget.entry_id,
-                      name,
-                      prenom,
-                      email,
-                      account,
-                      databases);
-                  print("apres ma3aytna les parametres li dthom save user infos " + widget.phoneNumber + "and" + "255.255.255.255" + name + prenom + email + widget.entry_id);
-print("resultat tae save user infos" + result);
-                  // Handle the result
-                  if (result == '400') {
-                    print('please provide all informations hedi f save user infos');
-                  } else if (result == '200') {
-                    print('infos saved successfully');
-                    Map<String, String> result2 = await authService.uploadUserSession(
-                        widget.phoneNumber, widget.userId, account, databases);
-                        if (result2['status'] == '200') {
-                      String sessionId = result2['session_id'] ?? '';
-                        await saveUserSession(widget.phoneNumber, widget.userId, sessionId);
-                      print('session saved successfully');
-                      Navigator.pushReplacement(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => PermissionsScreen(),
+                    final emailRegExp = RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$');
+                    if (name.isEmpty) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text('Please_enter_a_valid_name'.tr()),
                         ),
                       );
-                    } else if (result2['status'] == '400') {
-                      print('please provide all informations');
+                    } else if (prenom.isEmpty) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text('Please_enter_a_valid_prenom'.tr()),
+                        ),
+                      );
+                    } else if (email.isEmpty || !emailRegExp.hasMatch(email)) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text('Please_enter_a_valid_email'.tr()),
+                        ),
+                      );
                     } else {
-                      print('session not saved');
+                      // Set loading state
+                      setState(() {
+                        _isLoading = true;
+                      });
+                      
+                      final authService = AuthService();
+                      print("avant man3yto les parametres li dthom save user infos " + widget.phoneNumber + "and" + "255.255.255.255" + name + prenom + email + widget.entry_id);
+                      String result = await authService.saveUserInfos(
+                          widget.phoneNumber,
+                          getPlatform(),
+                          "255.255.255.255",
+                          widget.entry_id,
+                          name,
+                          prenom,
+                          email,
+                          account,
+                          databases);
+                      print("apres ma3aytna les parametres li dthom save user infos " + widget.phoneNumber + "and" + "255.255.255.255" + name + prenom + email + widget.entry_id);
+                      print("resultat tae save user infos" + result);
+                      
+                      // Handle the result
+                      if (result == '400') {
+                        setState(() {
+                          _isLoading = false;
+                        });
+                        print('please provide all informations hedi f save user infos');
+                      } else if (result == '200') {
+                        print('infos saved successfully');
+                        Map<String, String> result2 = await authService.uploadUserSession(
+                            widget.phoneNumber, widget.userId, account, databases);
+                        
+                        setState(() {
+                          _isLoading = false;
+                        });
+                        
+                        if (result2['status'] == '200') {
+                          String sessionId = result2['session_id'] ?? '';
+                          await saveUserSession(widget.phoneNumber, widget.userId, sessionId);
+                          print('session saved successfully');
+                          Navigator.pushReplacement(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => PermissionsScreen(),
+                            ),
+                          );
+                        } else if (result2['status'] == '400') {
+                          print('please provide all informations');
+                        } else {
+                          print('session not saved');
+                        }
+                      } else {
+                        setState(() {
+                          _isLoading = false;
+                        });
+                      }
+                      handleNameSubmit(name, prenom, email);
                     }
-
-                  }
-                  handleNameSubmit(name, prenom, email);
-                }
-              },
-              text: 'Connection'.tr(),
-            ),
+                  },
+                  text: 'Connection'.tr(),
+                ),
           ],
         ),
       ),
     );
   }
 }
+

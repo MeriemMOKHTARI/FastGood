@@ -409,7 +409,7 @@ class _SaveAddressScreenState extends State<SaveAddressScreen> {
                   ),
                   const SizedBox(height: 8),
                   if (_isLoading)
-                    const CircularProgressIndicator()
+                    const CircularProgressIndicator( color: Color(0xFFFF7F50),)
                   else
                     TextField(
                       controller: TextEditingController(text: _address),
@@ -494,7 +494,7 @@ class _SaveAddressScreenState extends State<SaveAddressScreen> {
                 ElevatedButton(
                   onPressed: _selectedType.isEmpty ? null : _saveAddress,
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: Color(0xFF70B9BE),
+                    backgroundColor: Color(0xFFFF7F50),
                     minimumSize: const Size(double.infinity, 48),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(8),
