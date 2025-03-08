@@ -99,7 +99,7 @@
     "Autorisation_de_notifications":"Autorización de notificaciones",
     "Recevez_des_notifications_sur_vos_commandes_et_offres_spéciales":"Recibe notificaciones sobre tus pedidos y ofertas especiales",
     "Oui":"Si",
-    "Nom":"No",
+    "Non":"No",
     "Oran": "Oran",
     "25min":"25min",
     "Bienvenue!":"Bienvenido!",
@@ -196,7 +196,23 @@
   "Mes commandes":"Pedidos",
   "Devenir partenaire":"Ser socio",
   "Devenir livreur":"Ser entregador",
-  "Mon profil":"Mi perfil"
+  "Mon profil":"Mi perfil",
+  "Select Gender":"Seleccionar genero",
+  "Male":"Hombre",
+  "Female":"Mujer",
+  "Gender":"Genero",
+  "Save":"Guardar",
+  "Profil mis à jour avec succès !":"Perfil actualizado con exito !",
+  "Erreur lors de la mise à jour du profil.":"Error al actualizar el perfil.",
+  "Notification Push":"Notificaciones",
+  "Notifications par SMS":"Notificaciones SMS",
+  "Notification par email":"Notificaciones email",
+  "Recevez les dernières offres et promotions via l'application":"Recibir las ultimas ofertas y promociones via la aplicacion",
+  "Recevez les dernières offres et promotions via SMS":"Recibir las ultimas ofertas y promociones via SMS",
+  "Recevez les dernières offres et promotions via email":"Recibir las ultimas ofertas y promociones via email",
+  "Accueil":"Inicio",
+  "Carte":"Cesta",
+  "favoris":"favoritos"
 
   }
   

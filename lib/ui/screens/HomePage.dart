@@ -7,6 +7,7 @@ import 'CartScreen.dart';
 import 'profileScreen.dart';
 import 'HomeContent.dart';
 import 'FavScreen.dart';
+import 'package:easy_localization/easy_localization.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({Key? key}) : super(key: key);
@@ -60,22 +61,22 @@ class _HomePageState extends State<HomePage> {
               items: [
                 SalomonBottomBarItem(
                   icon: const Icon(Icons.home_outlined),
-                  title: const Text("Accueil"),
+                  title:  Text("Accueil".tr()),
                   selectedColor: const Color(0xFFFF7F50),
                 ),
                 SalomonBottomBarItem(
                   icon: const Icon(Icons.shopping_bag_outlined),
-                  title: const Text("Carte"),
+                  title:  Text("Carte".tr()),
                   selectedColor: const Color(0xFFFF7F50),
                 ),
                 SalomonBottomBarItem(
                   icon: const Icon(Icons.favorite_border_outlined),
-                  title: const Text("favoris"),
+                  title:  Text("favoris".tr()),
                   selectedColor: const Color(0xFFFF7F50),
                 ),
                 SalomonBottomBarItem(
                   icon: const Icon(Icons.person_2_outlined),
-                  title: const Text("Profile"),
+                  title:  Text("Profile".tr()),
                   selectedColor: const Color(0xFFFF7F50),
                 ),
                 
