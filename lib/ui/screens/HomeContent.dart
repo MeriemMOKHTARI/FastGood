@@ -9,6 +9,7 @@ import '../../services/permissions_service.dart';
 import '../../services/auth_service.dart';
 import '../../config/config.dart';
 import '../screens/authentication_screen.dart';
+import '../../services/user_service.dart';
 
 class HomeContent extends StatefulWidget {
   const HomeContent({super.key});
@@ -27,6 +28,8 @@ class _HomeContentState extends State<HomeContent> with SingleTickerProviderStat
   late AuthService _authService;
   int _selectedIndex = 0;
   late AnimationController _animationController;
+   String userName = "";
+  String userSurname = "";
 
   @override
   void initState() {
@@ -38,6 +41,17 @@ class _HomeContentState extends State<HomeContent> with SingleTickerProviderStat
     duration: const Duration(milliseconds: 300),
     vsync: this,
   );
+   _loadUserInfo();
+  }
+   Future<void> _loadUserInfo() async {
+    final userService = UserService(); // Créer une instance
+final user = await userService.getUserProfile();
+   if (user != null) {
+      setState(() {
+        userName = user['user_name'] ?? "";
+        userSurname = user['family_name'] ?? ""; // Vérifie le bon nom de clé
+      });
+    }
   }
 
 @override
@@ -130,8 +144,8 @@ void dispose() {
               ),
          ),
             const SizedBox(height: 8),
-            const Text(
-              'Okba GHODBANI',
+             Text(
+               '$userName  $userSurname',
               style: TextStyle(
                 fontSize: 22,
                 fontWeight: FontWeight.bold,
