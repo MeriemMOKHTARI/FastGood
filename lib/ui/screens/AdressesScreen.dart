@@ -1,5 +1,6 @@
 import 'package:datalock/config/config.dart';
 import 'package:datalock/services/map_service.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import '../../data/models/addresses_model.dart';
 import 'MapScreen.dart';
@@ -70,11 +71,11 @@ Future<void> _loadAddresses() async {
         
         switch (addr['label']) {
           case 'H':
-            name = 'Domicile';
+            name = 'Domicile'.tr();
             icon = 'home';
             break;
           case 'W':
-            name = 'Bureau';
+            name = 'Bureau'.tr();
             icon = 'work';
             break;
           case 'C':
@@ -209,8 +210,8 @@ Future<void> _showDeleteConfirmation(BuildContext context, String documentId) as
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              const Text(
-                'Remove Adresse',
+               Text(
+                'Remove Adresse'.tr(),
                 style: TextStyle(
                   fontSize: 18,
                   fontWeight: FontWeight.w500,
@@ -218,8 +219,8 @@ Future<void> _showDeleteConfirmation(BuildContext context, String documentId) as
                 ),
               ),
               const SizedBox(height: 16),
-              const Text(
-                'Are you sure you want to delete this adresse?',
+               Text(
+                'Are you sure you want to delete this adresse?'.tr(),
                 textAlign: TextAlign.center,
                 style: TextStyle(
                   fontSize: 16,
@@ -240,8 +241,8 @@ Future<void> _showDeleteConfirmation(BuildContext context, String documentId) as
                           borderRadius: BorderRadius.circular(8),
                         ),
                       ),
-                      child: const Text(
-                        'Cancel',
+                      child:  Text(
+                        'Cancel'.tr(),
                         style: TextStyle(fontSize: 16),
                       ),
                     ),
@@ -257,14 +258,14 @@ Future<void> _showDeleteConfirmation(BuildContext context, String documentId) as
                         if (result['status'] == '200') {
                           if (context.mounted) {
                             ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(content: Text('Address deleted successfully')),
+                               SnackBar(content: Text('Address deleted successfully'.tr())),
                             );
                           }
                           _loadAddresses(); // Refresh the list
                         } else {
                           if (context.mounted) {
                             ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(content: Text(result['message'] ?? 'Failed to delete address')),
+                              SnackBar(content: Text(result['message'] ?? 'Failed to delete address'.tr())),
                             );
                           }
                         }
@@ -277,8 +278,8 @@ Future<void> _showDeleteConfirmation(BuildContext context, String documentId) as
                           borderRadius: BorderRadius.circular(8),
                         ),
                       ),
-                      child: const Text(
-                        'Yes, remove',
+                      child:  Text(
+                        'Yes, remove'.tr(),
                         style: TextStyle(fontSize: 16),
                       ),
                     ),
@@ -323,8 +324,8 @@ Future<void> _showDeleteConfirmation(BuildContext context, String documentId) as
           icon: const Icon(Icons.arrow_back, color: Color(0xFFFF7F50)),
           onPressed: () => Navigator.pop(context),
         ),
-        title: const Text(
-          'Mes adresses',
+        title:  Text(
+          'Mes adresses'.tr(),
           style: TextStyle(
             color: Colors.black,
             fontSize: 20,
@@ -406,8 +407,8 @@ Future<void> _showDeleteConfirmation(BuildContext context, String documentId) as
                         borderRadius: BorderRadius.circular(12),
                       ),
                     ),
-                    child: const Text(
-                      'Ajouter une adresse',
+                    child:  Text(
+                      'Ajouter une adresse'.tr(),
                       style: TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.w500,

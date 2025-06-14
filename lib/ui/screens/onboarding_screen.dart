@@ -110,21 +110,24 @@ class _OnBoardingScreenState extends State<OnboardingScreen> {
                 ),
                 const SizedBox(height: 20),
                 if (onLastPage)
-                  CustomButton(
-                    onPressed: () {
-                      _markAsSeen();
-                      Navigator.pushReplacement(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => AuthenticationScreen(
-                            account: Account(Client()),
-                            databases: Databases(Client()),
-                            functions: Functions(Client()),
+                  Padding(
+                    padding: const EdgeInsets.all(32.0),
+                    child: CustomButton(
+                      onPressed: () {
+                        _markAsSeen();
+                        Navigator.pushReplacement(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => AuthenticationScreen(
+                              account: Account(Client()),
+                              databases: Databases(Client()),
+                              functions: Functions(Client()),
+                            ),
                           ),
-                        ),
-                      );
-                    },
-                    text: 'Done'.tr(),
+                        );
+                      },
+                      text: 'Done'.tr(),
+                    ),
                   ),
               ],
             ),

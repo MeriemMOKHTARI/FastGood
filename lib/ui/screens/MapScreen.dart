@@ -1,4 +1,5 @@
 import 'package:datalock/ui/screens/SaveAddressScreen.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:geolocator/geolocator.dart';
@@ -77,8 +78,8 @@ class _MapScreenState extends State<MapScreen> {
           icon: const Icon(Icons.arrow_back, color: Color(0xFFFF7F50),),
           onPressed: () => Navigator.pop(context),
         ),
-        title: const Text(
-          'Sélectionner la localisation',
+        title:  Text(
+          'Sélectionner la localisation'.tr(),
           style: TextStyle(color: Colors.black),
         ),
       ),
@@ -124,8 +125,8 @@ class _MapScreenState extends State<MapScreen> {
                     borderRadius: BorderRadius.circular(8),
                   ),
                 ),
-                child: const Text(
-                  'Confirmer',
+                child:  Text(
+                  'Confirmer'.tr(),
                   style: TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.w500,

@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import '../../config/config.dart';
 
@@ -22,13 +23,13 @@ class IntroPage2 extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 Image.asset(
-                  'assets/images/intro_page_1.png',
+                  'assets/images/intro_page_2.png',
                   width: 250,
                   height: 250,
                   fit: BoxFit.contain,
                 ),
-                const Text(
-                  Config.onboardingTitle1,
+                 Text(
+                  Config.onboardingTitle2.tr(),
                   style: TextStyle(
                     fontSize: 20,
                    color: const Color(0xFF3A3A3A),
@@ -37,8 +38,8 @@ class IntroPage2 extends StatelessWidget {
                   textAlign: TextAlign.center,
                 ),
                 const SizedBox(height: 20),
-                const Text(
-                  Config.onboardingDesc1,
+                 Text(
+                  Config.onboardingDesc2.tr(),
                   style: TextStyle(
                     fontSize: 16,
                      color: const Color(0xFF3A3A3A),

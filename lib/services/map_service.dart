@@ -62,7 +62,7 @@ Future<Map<String, dynamic>> addFavoriteAddress({
             'status': '200',
             'data': responseBody['data']
           };
-        } else if (responseBody['status'] == '601') {
+        } else if (responseBody['status'] == '600') {
           return {
             'status': '601',
             'message': 'Home address already exists'

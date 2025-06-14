@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import '../../config/config.dart';
 
@@ -27,8 +28,8 @@ class IntroPage1 extends StatelessWidget {
                   height: 250,
                   fit: BoxFit.contain,
                 ),
-                const Text(
-                  Config.onboardingTitle1,
+                 Text(
+                  Config.onboardingTitle1.tr(),
                   style: TextStyle(
                     fontSize: 20,
                     color: const Color(0xFF3A3A3A),
@@ -37,8 +38,8 @@ class IntroPage1 extends StatelessWidget {
                   textAlign: TextAlign.center,
                 ),
                 const SizedBox(height: 20),
-                const Text(
-                  Config.onboardingDesc1,
+                 Text(
+                  Config.onboardingDesc1.tr(),
                   style: TextStyle(
                     fontSize: 16,
                     color: const Color(0xFF3A3A3A),

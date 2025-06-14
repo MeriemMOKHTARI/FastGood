@@ -296,6 +296,14 @@ Future<Map<String, String>> logoutUser(String sessionId) async {
 
     try {
       print('Attempting to logout session: $sessionId');
+      
+      if (sessionId.isEmpty) {
+        print('Session ID is empty, cannot logout');
+        return {
+          'status': '400',
+          'message': 'Empty session ID'
+        };
+      }
 
       Execution result = await functions.createExecution(
         functionId: "sessionManagement",
@@ -305,23 +313,28 @@ Future<Map<String, String>> logoutUser(String sessionId) async {
         method: ExecutionMethod.dELETE,
       );
 
+      print('Function execution completed with status: ${result.status}');
+      
       if (result.status == 'completed') {
         final responseBody = json.decode(result.responseBody);
-        print('Logout response: $responseBody');
+        print('Logout response body: $responseBody');
 
         if (responseBody['status'] == '200') {
           // Clear all stored session data
+          print('Server confirmed logout, clearing session data');
           await _clearSessionData();
           return {
             'status': '200',
             'message': 'Logged out successfully'
           };
         } else if (responseBody['status'] == '400') {
+          print('Server returned 400: Missing session ID');
           return {
             'status': '400',
             'message': 'Missing session ID'
           };
         } else {
+          print('Server returned unknown status: ${responseBody['status']}');
           return {
             'status': 'ERR',
             'message': 'Database error'
@@ -343,25 +356,36 @@ Future<Map<String, String>> logoutUser(String sessionId) async {
     }
   }
 
-  Future<void> _clearSessionData() async {
-    try {
-      // Clear secure storage
-      await storage.delete(key: 'session_id');
-      await storage.delete(key: 'user_id');
-      await storage.delete(key: 'phone_number');
-      await storage.delete(key: 'new_user_id');
-
-      // Clear shared preferences
-      final prefs = await SharedPreferences.getInstance();
-      await prefs.remove('cached_user_id');
-      await prefs.remove('locale'); // Optional: keep language setting
-
-      print('Session data cleared successfully');
-    } catch (e) {
-      print('Error clearing session data: $e');
-      throw e; // Re-throw to handle in calling function
+// Update the _clearSessionData method to be more robust
+Future<void> _clearSessionData() async {
+  try {
+    print('Starting to clear session data');
+    final storage = FlutterSecureStorage();
+    
+    // Get all keys first
+    final allKeys = await storage.readAll();
+    print('Found ${allKeys.length} keys in secure storage');
+    
+    // Delete each key individually
+    for (var key in allKeys.keys) {
+      await storage.delete(key: key);
+      print('Deleted key: $key');
     }
+
+    // Clear shared preferences
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.remove('cached_user_id');
+    print('Removed cached_user_id from SharedPreferences');
+    
+    // Don't remove locale setting
+    // await prefs.remove('locale');
+
+    print('Session data cleared successfully');
+  } catch (e) {
+    print('Error clearing session data: $e');
+    // Don't rethrow, just log the error
   }
+}
 
 
 // Update the verifyUserExistence method to ensure consistent caching
