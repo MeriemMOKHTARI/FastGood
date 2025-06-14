@@ -96,16 +96,16 @@ class Config {
 }
 
 
-static const String onboardingTitle1 = "Bienvenue";
+static const String onboardingTitle1 = "Bienvenue!";
 static const String onboardingDesc1 = "Ravi de vous rencontrer. Nous sommes heureux de vous accueillir.";
  static const String onboardingBg1 = "assets/images/onboard1.png";
 
 static const String onboardingTitle2 = "Livraion rapide";
-static const String onboardingDesc2 = "Profitez de notre service de livraison rapide et efficace !";
+static const String onboardingDesc2 = "Profitez de notre service de livraison rapide et efficace!";
  static const String onboardingBg2 = "assets/images/onboard1.png";
 
  static const String onboardingTitle3 = "Commencez maintenant";
-static const String onboardingDesc3 = "Prêt à découvrir notre application ? C'est parti !";
+static const String onboardingDesc3 = "Prêt à découvrir notre application? C'est parti!";
  static const String onboardingBg3 = "assets/images/onboard2.png";  
 }
 

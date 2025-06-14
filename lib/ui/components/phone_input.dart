@@ -423,7 +423,7 @@ class _PhoneInputState extends flutter.State<PhoneInput> {
                 )
               : CustomButton(
                   onPressed: isPhoneValid ? _showConfirmationDialog : null,
-                  text: 'login'.tr(),
+                  text: 'Continuer'.tr(),
                 ),
             flutter.SizedBox(height: 16),
             flutter.Center(

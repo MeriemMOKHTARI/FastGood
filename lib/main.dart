@@ -60,11 +60,14 @@ class MyApp extends flutter.StatelessWidget {
       locale: context.locale,
       title: 'app_name'.tr(),
       theme: Config.themeData,
-      home: SplashScreen(
-        account: account,
-        databases: databases,
-        functions: functions,
-      ),
+      home: HomePage(),
+      // SplashScreen(
+      //   account: account,
+      //   databases: databases,
+      //   functions: functions,
+      // ),
+      // OnboardingScreen()
+      
     );
   }
 }

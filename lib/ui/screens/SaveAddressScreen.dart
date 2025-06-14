@@ -1,5 +1,6 @@
 import 'package:datalock/services/map_service.dart';
 import 'package:datalock/ui/screens/AdressesScreen.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:geocoding/geocoding.dart';
@@ -49,7 +50,7 @@ class _SaveAddressScreenState extends State<SaveAddressScreen> {
     if (_selectedType.isEmpty) return;
     if (_selectedType == 'Custom' && _customLabel.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please enter a name for this location')),
+         SnackBar(content: Text('Please enter a name for this location'.tr())),
       );
       return;
     }
@@ -93,7 +94,7 @@ class _SaveAddressScreenState extends State<SaveAddressScreen> {
 
       if (result['status'] == '200') {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Address saved successfully')),
+           SnackBar(content: Text('Address saved successfully'.tr())),
         );
         Navigator.pop(context, true);
       } else if (result['status'] == '601') {
@@ -137,7 +138,7 @@ class _SaveAddressScreenState extends State<SaveAddressScreen> {
               ),
               SizedBox(height: 16),
               Text(
-                'Adresse déjà existante',
+                'Adresse déjà existante'.tr(),
                 style: TextStyle(
                   fontSize: 20,
                   fontWeight: FontWeight.bold,
@@ -145,8 +146,7 @@ class _SaveAddressScreenState extends State<SaveAddressScreen> {
                 textAlign: TextAlign.center,
               ),
               SizedBox(height: 12),
-              Text(
-                'Une adresse "$addressType" existe déjà. Vous ne pouvez avoir qu\'une seule adresse de ce type.',
+              Text("$addressType"+" "+'Une adresse existe déjà. Vous ne pouvez avoir qu une seule adresse de ce type.'.tr(),
                 style: TextStyle(
                   fontSize: 16,
                   color: Colors.grey[600],
@@ -164,7 +164,7 @@ class _SaveAddressScreenState extends State<SaveAddressScreen> {
                   ),
                 ),
                 child: Text(
-                  'Compris',
+                  'Compris'.tr(),
                   style: TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.w500,
@@ -195,7 +195,7 @@ class _SaveAddressScreenState extends State<SaveAddressScreen> {
               SizedBox(height: 16),
               ElevatedButton(
                 onPressed: () => Navigator.pop(context),
-                child: Text('OK'),
+                child: Text('OK'.tr()),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Color(0xFFFFFF7F50),
                 ),
@@ -327,7 +327,7 @@ class _SaveAddressScreenState extends State<SaveAddressScreen> {
                       });
                     },
                     decoration: InputDecoration(
-                      hintText: 'Nommer cet address..',
+                      hintText: 'Nommer cet address...'.tr(),
                       border: InputBorder.none,
                       hintStyle: TextStyle(
                         color: Colors.grey[600],
@@ -360,7 +360,7 @@ class _SaveAddressScreenState extends State<SaveAddressScreen> {
           onPressed: () => Navigator.pop(context),
         ),
         title: Text(
-          widget.addressToEdit != null ? 'Modifier mon adresse' : 'Sauvegarder l\'adresse',
+          widget.addressToEdit != null ? 'Modifier mon adresse'.tr() : 'Sauvegarder l adresse'.tr(),
           style: const TextStyle(color: Colors.black),
         ),
       ),
@@ -399,8 +399,8 @@ class _SaveAddressScreenState extends State<SaveAddressScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text(
-                    'Your Location',
+                   Text(
+                    'Your Location'.tr(),
                     style: TextStyle(
                       color: Colors.grey,
                       fontSize: 14,
@@ -409,7 +409,7 @@ class _SaveAddressScreenState extends State<SaveAddressScreen> {
                   ),
                   const SizedBox(height: 8),
                   if (_isLoading)
-                    const CircularProgressIndicator( color: Color(0xFFFF7F50),)
+                     CircularProgressIndicator( color: Color(0xFFFF7F50))
                   else
                     TextField(
                       controller: TextEditingController(text: _address),
@@ -423,15 +423,15 @@ class _SaveAddressScreenState extends State<SaveAddressScreen> {
                         color: Colors.black87,
                       ),
                       decoration: InputDecoration(
-                        hintText: 'Enter address',
+                        hintText: 'Enter address'.tr(),
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(8),
                         ),
                       ),
                     ),
                   const SizedBox(height: 24),
-                  const Text(
-                    'Save As',
+                   Text(
+                    'Save As'.tr(),
                     style: TextStyle(
                       color: Colors.grey,
                       fontSize: 14,
@@ -470,12 +470,12 @@ class _SaveAddressScreenState extends State<SaveAddressScreen> {
                       );
                       if (result['status'] == '200') {
                         ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(content: Text('Address deleted successfully')),
+                           SnackBar(content: Text('Address deleted successfully'.tr())),
                         );
                         Navigator.pop(context, true); // Return true to trigger refresh
                       } else {
                         ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(content: Text(result['message'] ?? 'Failed to delete address')),
+                          SnackBar(content: Text(result['message'] ?? 'Failed to delete address'.tr())),
                         );
                       }
                     },
@@ -487,7 +487,7 @@ class _SaveAddressScreenState extends State<SaveAddressScreen> {
                         side: const BorderSide(color: Colors.red),
                       ),
                     ),
-                    child: const Text('Supprimer l\'adresse'),
+                    child:  Text('Supprimer l adresse'.tr()),
                   ),
                 if (widget.addressToEdit != null)
                   const SizedBox(height: 12),
@@ -502,8 +502,8 @@ class _SaveAddressScreenState extends State<SaveAddressScreen> {
                   ),
                   child: Text(
                     widget.addressToEdit != null
-                        ? 'Sauvegarder les modifications'
-                        : 'Sauvegarder l\'adresse',
+                        ? 'Sauvegarder les modifications'.tr()
+                        : 'Sauvegarder l\'adresse'.tr(),
                     style: const TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.w500,
